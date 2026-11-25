@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pengajuan Siswa Keluar</title>
+  <meta name="theme-color" content="#0891b2">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      color-scheme: light;
+      --sea: #0891b2; --sea2: #0ea5e9; --deep: #075985; --foam: #e0f7fa; --sand: #fde9b8; --coral: #fb7185; --sun: #fbbf24;
+      --wave: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 120' preserveAspectRatio='none'%3E%3Cpath fill='%23ffffff' d='M0 60Q150 15 300 60T600 60T900 60T1200 60V120H0Z'/%3E%3C/svg%3E");
+    }
+    html { scroll-behavior: smooth; }
+    body { font-family: 'Plus Jakarta Sans', system-ui, sans-serif; color: #0c4a6e; min-height: 100vh; overflow-x: hidden;
+      background: linear-gradient(180deg, #bae6fd 0%, #e0f7fa 38%, #fff8e6 100%) fixed; }
+    button, input, textarea { font-family: inherit; }
+
+    /* ============ LATAR ANIMASI ============ */
+    #bg { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+    .cloud { position: absolute; left: -260px; width: 200px; height: 56px; background: #fff; border-radius: 60px; opacity: .8; filter: blur(.5px); animation: drift linear infinite; }
+    .cloud::before, .cloud::after { content: ''; position: absolute; background: #fff; border-radius: 50%; }
+    .cloud::before { width: 90px; height: 90px; top: -40px; left: 24px; }
+    .cloud::after { width: 70px; height: 70px; top: -26px; left: 94px; }
+    @keyframes drift { to { transform: translateX(calc(100vw + 520px)); } }
+    .gull { position: absolute; left: -60px; width: 44px; animation: fly linear infinite; }
+    .gull svg { width: 100%; transform-origin: center; animation: flap .7s ease-in-out infinite; }
+    @keyframes fly { to { transform: translate(calc(100vw + 120px), -50px); } }
+    @keyframes flap { 0%,100% { transform: scaleY(1); } 50% { transform: scaleY(.35); } }
+    .fish { position: absolute; font-size: 28px; animation: swim linear infinite; opacity: .85; }
+    @keyframes swim { 0% { transform: translateX(-80px) translateY(0); } 50% { transform: translateX(50vw) translateY(-14px); } 100% { transform: translateX(calc(100vw + 80px)) translateY(0); } }
+    .fish.rev { animation-name: swimR; }
+    @keyframes swimR { 0% { transform: translateX(calc(100vw + 80px)) scaleX(-1); } 50% { transform: translateX(45vw) translateY(12px) scaleX(-1); } 100% { transform: translateX(-80px) scaleX(-1); } }
+    .bubble { position: absolute; bottom: -40px; border-radius: 50%; background: radial-gradient(circle at 30% 30%, rgba(255,255,255,.95), rgba(125,211,252,.25) 60%, rgba(14,165,233,.15)); border: 1px solid rgba(255,255,255,.7); animation: rise-b linear infinite; }
+    @keyframes rise-b { 0% { transform: translate(0,0) scale(.6); opacity: 0; } 10% { opacity: 1; } 50% { transform: translate(18px,-50vh) scale(1); } 100% { transform: translate(-14px,-108vh) scale(1.1); opacity: 0; } }
+    .sea-fixed { position: absolute; left: 0; right: 0; bottom: 0; height: 130px; }
+    .wl { position: absolute; left: 0; right: 0; bottom: 0; background: var(--wave) repeat-x; background-size: 1200px 100%; animation: wv linear infinite; }
+    @keyframes wv { to { background-position-x: 1200px; } }
+    .wl.a { height: 100px; opacity: .35; filter: hue-rotate(0deg) brightness(.95); animation-duration: 22s; }
+    .wl.b { height: 78px; opacity: .5; animation-duration: 15s; animation-direction: reverse; bottom: -6px; }
+    .wl.c { height: 56px; opacity: .7; animation-duration: 10s; bottom: -10px; }
+    .sea-fixed .tint { position: absolute; inset: 0; background: linear-gradient(180deg, transparent, rgba(8,145,178,.28)); }
+
+    /* ============ HERO ============ */
+    header.hero { position: relative; z-index: 1; overflow: hidden; color: #fff;
+      background: linear-gradient(180deg, #0369a1 0%, #0891b2 55%, #22d3ee 100%); }
+    .hero-sun { position: absolute; top: 24px; right: 8%; width: 92px; height: 92px; border-radius: 50%; background: radial-gradient(circle, #fff7c2, #fbbf24 70%); box-shadow: 0 0 60px 20px rgba(251,191,36,.55); animation: sunp 4s ease-in-out infinite; }
+    .hero-sun::before { content: ''; position: absolute; inset: -34px; border-radius: 50%; background: repeating-conic-gradient(rgba(255,236,150,.55) 0 6deg, transparent 6deg 24deg); -webkit-mask: radial-gradient(circle, transparent 46px, #000 47px, #000 80px, transparent 81px); mask: radial-gradient(circle, transparent 46px, #000 47px, #000 80px, transparent 81px); animation: spin 30s linear infinite; }
+    @keyframes sunp { 0%,100% { transform: scale(1); } 50% { transform: scale(1.07); } }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .hero-waves { position: absolute; left: 0; right: 0; bottom: -1px; height: 90px; }
+    .hero-waves .wl { filter: none; }
+    .hero-waves .a { height: 90px; opacity: .3; } .hero-waves .b { height: 70px; opacity: .55; } .hero-waves .c { height: 48px; opacity: 1; bottom: -2px; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 120' preserveAspectRatio='none'%3E%3Cpath fill='%23e0f7fa' d='M0 60Q150 15 300 60T600 60T900 60T1200 60V120H0Z'/%3E%3C/svg%3E"); }
+    .boat { position: absolute; bottom: 38px; left: -90px; font-size: 44px; animation: sail 26s linear infinite; }
+    .boat span { display: inline-block; animation: bob 2.6s ease-in-out infinite; transform-origin: 50% 90%; }
+    @keyframes sail { to { transform: translateX(calc(100vw + 180px)); } }
+    @keyframes bob { 0%,100% { transform: translateY(0) rotate(-5deg); } 50% { transform: translateY(-9px) rotate(5deg); } }
+    .hero-title { text-shadow: 0 4px 20px rgba(3,105,161,.45); }
+    .tag-pill { background: rgba(255,255,255,.2); backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,.35); }
+    .step { background: rgba(255,255,255,.18); backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,.3); transition: .3s; animation: rise .7s both; }
+    .step:hover { transform: translateY(-4px) scale(1.03); background: rgba(255,255,255,.28); }
+    .step .em { display: inline-block; font-size: 22px; animation: wiggle 3s ease-in-out infinite; }
+    @keyframes wiggle { 0%,100% { transform: rotate(-8deg); } 50% { transform: rotate(8deg) translateY(-3px); } }
+
+    /* ============ KARTU & FORM ============ */
+    main { position: relative; z-index: 1; }
+    .card { background: rgba(255,255,255,.86); backdrop-filter: blur(14px); border: 1px solid rgba(186,230,253,.9); box-shadow: 0 18px 40px -18px rgba(3,105,161,.35); transition: transform .3s, box-shadow .3s; }
+    .card:hover { transform: translateY(-3px); box-shadow: 0 26px 50px -18px rgba(3,105,161,.45); }
+    .badge { width: 40px; height: 40px; border-radius: 14px; display: grid; place-items: center; font-size: 20px; animation: floaty 3.6s ease-in-out infinite; }
+    @keyframes floaty { 0%,100% { transform: translateY(0) rotate(-3deg); } 50% { transform: translateY(-4px) rotate(3deg); } }
+    .inp { width: 100%; background: #f0fbff; border: 1.5px solid #bae6fd; border-radius: 14px; padding: .7rem .95rem; font-size: .875rem; color: #0c4a6e; transition: .2s; outline: none; }
+    .inp::placeholder { color: #7aa7bd; }
+    .inp:hover { border-color: #38bdf8; }
+    .inp:focus { background: #fff; border-color: var(--sea); box-shadow: 0 0 0 4px rgba(8,145,178,.18); transform: translateY(-1px); }
+    textarea.inp { resize: none; line-height: 1.5; }
+    .lab { display: block; font-size: 13px; font-weight: 700; color: #075985; margin-bottom: .375rem; }
+
+    .cs-btn { width: 100%; display: flex; align-items: center; justify-content: space-between; gap: .5rem; text-align: left; background: #f0fbff; border: 1.5px solid #bae6fd; border-radius: 14px; padding: .7rem .95rem; font-size: .875rem; color: #0c4a6e; transition: .2s; cursor: pointer; }
+    .cs-btn:hover { border-color: #38bdf8; }
+    .cs-btn:focus-visible, .cs-open .cs-btn { outline: none; background: #fff; border-color: var(--sea); box-shadow: 0 0 0 4px rgba(8,145,178,.18); }
+    .cs-label.ph { color: #7aa7bd; }
+    .cs-chev { width: 16px; height: 16px; color: #38bdf8; transition: transform .25s; flex: none; }
+    .cs-open .cs-chev { transform: rotate(180deg); }
+    .cs-pop { position: fixed; z-index: 100; background: #fff; border: 1px solid #bae6fd; border-radius: 16px; box-shadow: 0 24px 50px -12px rgba(3,105,161,.35); padding: 6px; display: none; }
+    .cs-pop.show { display: block; animation: pop .16s ease-out; }
+    .cs-list { max-height: 240px; overflow-y: auto; list-style: none; margin: 0; padding: 0; }
+    .cs-item { padding: .55rem .75rem; border-radius: 10px; font-size: .85rem; cursor: pointer; display: flex; align-items: center; justify-content: space-between; gap: .5rem; color: #0c4a6e; transition: .12s; }
+    .cs-item:hover { background: #e0f7fa; transform: translateX(2px); }
+    .cs-item.sel { color: #0e7490; font-weight: 700; background: #cffafe; }
+    .cs-empty { padding: .8rem; font-size: .8rem; color: #7aa7bd; text-align: center; }
+    .cs-search { width: 100%; border: 1.5px solid #bae6fd; border-radius: 10px; padding: .5rem .7rem; font-size: .8rem; outline: none; margin-bottom: 6px; }
+    .cs-search:focus { border-color: var(--sea); }
+    @keyframes pop { from { opacity: 0; transform: translateY(-4px) scale(.98); } to { opacity: 1; transform: none; } }
+
+    /* ---------- Kalender kustom ---------- */
+    .cal-ic { width: 18px; height: 18px; color: #38bdf8; flex: none; transition: transform .25s; }
+    .cs-open .cal-ic { transform: scale(1.15) rotate(-6deg); color: var(--sea); }
+    .cal-pop { padding: 12px; border-radius: 20px; }
+    .cal-head { display: flex; align-items: center; justify-content: space-between; gap: 6px; margin-bottom: 8px; }
+    .cal-title { flex: 1; padding: .4rem .6rem; border-radius: 10px; font-size: .88rem; font-weight: 800; color: #075985; transition: .15s; }
+    .cal-title:hover { background: #e0f7fa; }
+    .cal-nav { width: 34px; height: 34px; border-radius: 10px; font-size: 1.2rem; font-weight: 800; color: var(--sea); background: #f0fbff; transition: .15s; }
+    .cal-nav:hover:not(:disabled) { background: #cffafe; transform: scale(1.08); }
+    .cal-nav:disabled, .cal-day:disabled, .cal-opt:disabled { opacity: .3; cursor: not-allowed; }
+    .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; }
+    .cal-wd span { text-align: center; font-size: 10.5px; font-weight: 800; color: #7aa7bd; padding: 4px 0; text-transform: uppercase; letter-spacing: .04em; }
+    .cal-day { aspect-ratio: 1; border-radius: 10px; font-size: .82rem; font-weight: 600; color: #0c4a6e; transition: .15s; }
+    .cal-day:hover:not(:disabled) { background: #cffafe; transform: scale(1.1); }
+    .cal-day.today { box-shadow: inset 0 0 0 1.5px #38bdf8; }
+    .cal-day.sel { background: linear-gradient(135deg, #0891b2, #0ea5e9); color: #fff; font-weight: 800; box-shadow: 0 6px 14px -4px rgba(8,145,178,.6); }
+    .cal-foot { display: flex; justify-content: space-between; margin-top: 8px; padding-top: 8px; border-top: 1px solid #e0f2fe; }
+    .cal-foot button { padding: .3rem .7rem; border-radius: 8px; font-size: .78rem; font-weight: 700; color: var(--sea); transition: .15s; }
+    .cal-foot button:hover { background: #e0f7fa; }
+    .cal-years { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; max-height: 230px; overflow-y: auto; position: relative; }
+    .cal-months { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+    .cal-opt { padding: .55rem 0; border-radius: 10px; font-size: .85rem; font-weight: 700; color: #0c4a6e; background: #f0fbff; transition: .15s; }
+    .cal-opt:hover:not(:disabled) { background: #cffafe; transform: translateY(-1px); }
+    .cal-opt.sel { background: linear-gradient(135deg, #0891b2, #0ea5e9); color: #fff; }
+
+    .emsg { display: none; margin-top: .35rem; font-size: .72rem; font-weight: 700; color: #e11d48; }
+    .has-err .emsg { display: block; animation: shake .4s; }
+    .has-err .inp, .has-err .cs-btn, .has-err .drop { border-color: #fb7185 !important; box-shadow: 0 0 0 4px rgba(251,113,133,.15); }
+    @keyframes shake { 20%,60% { transform: translateX(-4px); } 40%,80% { transform: translateX(4px); } }
+
+    .drop { border: 2px dashed #7dd3fc; border-radius: 20px; padding: 1.6rem 1rem; text-align: center; cursor: pointer; background: linear-gradient(180deg, #f0fbff, #e0f7fa); transition: .25s; }
+    .drop:hover, .drop.over { border-color: var(--sea); background: #cffafe; transform: scale(1.01); }
+    .drop .ico { animation: floaty 3s ease-in-out infinite; }
+
+    .toast-box { position: fixed; top: 16px; right: 16px; z-index: 300; display: flex; flex-direction: column; gap: 10px; width: min(360px, calc(100vw - 32px)); }
+    .toast { display: flex; gap: .65rem; align-items: flex-start; background: #fff; border-radius: 16px; padding: .85rem 1rem; font-size: .84rem; font-weight: 600; color: #0c4a6e; box-shadow: 0 18px 40px -12px rgba(3,105,161,.4); border-left: 5px solid var(--sea); animation: tin .3s ease-out; }
+    .toast.ok { border-left-color: #10b981; } .toast.err { border-left-color: #f43f5e; }
+    .toast.out { opacity: 0; transform: translateX(20px); transition: .25s; }
+    @keyframes tin { from { opacity: 0; transform: translateX(24px); } to { opacity: 1; transform: none; } }
+
+    @keyframes rise { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
+    .rise { animation: rise .6s ease-out both; }
+    @keyframes draw { to { stroke-dashoffset: 0; } }
+    .check-path { stroke-dasharray: 40; stroke-dashoffset: 40; animation: draw .6s .25s ease-out forwards; }
+
+    .btn-main { position: relative; overflow: hidden; background: linear-gradient(90deg, #0891b2, #0ea5e9, #06b6d4); background-size: 200% 100%; animation: grad 5s linear infinite; transition: transform .2s, box-shadow .2s; }
+    .btn-main::after { content: ''; position: absolute; inset: 0; background: linear-gradient(110deg, transparent 30%, rgba(255,255,255,.45) 50%, transparent 70%); transform: translateX(-130%); animation: shine 3.2s ease-in-out infinite; }
+    .btn-main:hover { transform: translateY(-2px); box-shadow: 0 18px 36px -10px rgba(8,145,178,.7); }
+    .btn-main:active { transform: scale(.98); }
+    .btn-main:disabled { opacity: .8; cursor: wait; }
+    @keyframes grad { to { background-position: 200% 0; } }
+    @keyframes shine { 0%,40% { transform: translateX(-130%); } 100% { transform: translateX(130%); } }
+    .spinner { width: 18px; height: 18px; border: 2.5px solid rgba(255,255,255,.4); border-top-color: #fff; border-radius: 50%; animation: spin .7s linear infinite; }
+
+    .progfill { position: relative; overflow: hidden; background: linear-gradient(90deg, #22d3ee, #0ea5e9); }
+    .progfill::after { content: ''; position: absolute; inset: 0; background: linear-gradient(100deg, transparent 30%, rgba(255,255,255,.6) 50%, transparent 70%); animation: shine 2.4s ease-in-out infinite; }
+    .sand { height: 90px; }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; } }
+  </style>
+</head>
+<body>
+
+  <!-- ================= LATAR PANTAI ================= -->
+  <div id="bg" aria-hidden="true">
+    <div class="cloud" style="top:12%;animation-duration:90s;animation-delay:-20s"></div>
+    <div class="cloud" style="top:26%;transform-origin:left;scale:.7;animation-duration:120s;animation-delay:-70s;opacity:.6"></div>
+    <div class="cloud" style="top:6%;scale:.55;animation-duration:150s;animation-delay:-110s;opacity:.55"></div>
+    <div class="gull" style="top:18%;animation-duration:32s;animation-delay:-6s"><svg viewBox="0 0 44 20" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round"><path d="M2 14Q12 0 22 12Q32 0 42 14"/></svg></div>
+    <div class="gull" style="top:30%;width:30px;animation-duration:44s;animation-delay:-24s;opacity:.8"><svg viewBox="0 0 44 20" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round"><path d="M2 14Q12 0 22 12Q32 0 42 14"/></svg></div>
+    <div class="fish" style="bottom:70px;animation-duration:28s">🐠</div>
+    <div class="fish rev" style="bottom:104px;animation-duration:36s;animation-delay:-12s;font-size:22px">🐟</div>
+    <div class="fish" style="bottom:46px;animation-duration:48s;animation-delay:-30s;font-size:32px">🐡</div>
+    <div class="fish rev" style="bottom:130px;animation-duration:60s;animation-delay:-8s;font-size:36px">🐬</div>
+    <div id="bubbles"></div>
+    <div class="sea-fixed"><div class="tint"></div><div class="wl a"></div><div class="wl b"></div><div class="wl c"></div></div>
+  </div>
+
+  <!-- ================= HERO ================= -->
+  <header class="hero">
+    <div class="hero-sun"></div>
+    <div class="relative max-w-3xl mx-auto px-5 pt-10 pb-28">
+      <div class="tag-pill inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 text-xs font-semibold rise">
+        <span>🏝️</span> Layanan Administrasi Sekolah
+      </div>
+      <h1 class="hero-title mt-4 text-3xl sm:text-5xl font-extrabold leading-tight tracking-tight rise" style="animation-delay:.1s">Pengajuan Siswa Keluar</h1>
+      <p class="mt-2 text-cyan-50 text-sm sm:text-base max-w-xl rise" style="animation-delay:.2s">Formulir resmi pengunduran diri atau mutasi siswa. Isi dengan data yang sesuai dokumen resmi, lalu berkas Anda langsung diteruskan ke Operator Dapodik.</p>
+    </div>
+    <div class="boat"><span>⛵</span></div>
+    <div class="hero-waves"><div class="wl a"></div><div class="wl b"></div><div class="wl c"></div></div>
+  </header>
+
+  <main class="relative max-w-3xl w-full mx-auto px-4 -mt-10 pb-24">
+
+    <!-- ================= SUKSES ================= -->
+    <div id="successBox" class="hidden rise card rounded-[28px] p-8 sm:p-10 text-center">
+      <div class="w-20 h-20 rounded-full bg-emerald-100 mx-auto flex items-center justify-center" style="animation:floaty 3s ease-in-out infinite">
+        <svg class="w-10 h-10 text-emerald-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path class="check-path" d="M5 12.5l4.5 4.5L19 7.5"/></svg>
+      </div>
+      <h2 class="mt-5 text-2xl font-extrabold text-sky-900">Pengajuan Berhasil Dikirim 🌊</h2>
+      <p class="mt-2 text-sm text-sky-700/80 max-w-md mx-auto">Data dan berkas sudah masuk ke database sekolah dan diteruskan ke Operator Dapodik untuk diproses.</p>
+      <div id="successSummary" class="mt-6 mx-auto max-w-sm text-left rounded-2xl bg-cyan-50 border border-cyan-100 p-4 text-sm space-y-1.5"></div>
+      <button onclick="resetFormView()" class="btn-main mt-7 inline-flex items-center gap-2 px-6 py-3 rounded-2xl text-white text-sm font-bold shadow-lg shadow-cyan-600/25">
+        <span class="relative z-10">Ajukan Siswa Lainnya</span>
+      </button>
+    </div>
+
+    <!-- ================= FORM ================= -->
+    <form id="pengajuanForm" novalidate onsubmit="handleSubmit(event)" class="space-y-5">
+
+      <div class="rise card rounded-2xl px-5 py-4">
+        <div class="flex items-center justify-between text-xs font-bold">
+          <span class="text-sky-800">🌊 Kelengkapan formulir</span>
+          <span id="progText" class="text-cyan-600">0 dari 9 terisi</span>
+        </div>
+        <div class="mt-2.5 h-2.5 rounded-full bg-cyan-100 overflow-hidden">
+          <div id="progBar" class="progfill h-2.5 rounded-full transition-all duration-500" style="width:0%"></div>
+        </div>
+      </div>
+
+      <!-- 1 -->
+      <section class="rise card rounded-[24px] p-5 sm:p-7" style="animation-delay:.05s">
+        <div class="flex items-center gap-3 mb-5">
+          <div class="badge bg-cyan-100">🏖️</div>
+          <div><h2 class="font-extrabold text-sky-900 leading-tight">Data Siswa</h2><p class="text-xs text-sky-700/70">Sesuai KK / Akta Kelahiran</p></div>
+        </div>
+        <div class="space-y-4">
+          <div data-field="nama">
+            <label class="lab">Nama Lengkap Siswa <span class="text-rose-500">*</span></label>
+            <input id="fNama" type="text" autocomplete="off" placeholder="Tulis nama lengkap" class="inp" />
+            <p class="emsg">Nama siswa wajib diisi.</p>
+          </div>
+          <div data-field="kelas">
+            <label class="lab">Kelas <span class="text-rose-500">*</span></label>
+            <div id="selKelas"></div>
+            <input id="fKelasLain" type="text" placeholder="Ketik kelas, contoh: XI TKJ 4" class="inp mt-2 hidden" />
+            <p class="emsg">Pilih kelas siswa.</p>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div data-field="tempatLahir">
+              <label class="lab">Tempat Lahir <span class="text-rose-500">*</span></label>
+              <input id="fTempatLahir" type="text" autocomplete="off" placeholder="Contoh: Pati" class="inp" />
+              <p class="emsg">Tempat lahir wajib diisi.</p>
+            </div>
+            <div data-field="tglLahir">
+              <label class="lab">Tanggal Lahir <span class="text-rose-500">*</span></label>
+              <div id="selTglLahir"></div>
+              <p class="emsg">Lengkapi tanggal, bulan, dan tahun lahir.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 2 -->
+      <section class="rise card rounded-[24px] p-5 sm:p-7" style="animation-delay:.1s">
+        <div class="flex items-center gap-3 mb-5">
+          <div class="badge bg-teal-100" style="animation-delay:-1s">🦀</div>
+          <div><h2 class="font-extrabold text-sky-900 leading-tight">Orang Tua / Wali</h2><p class="text-xs text-sky-700/70">Penanggung jawab siswa</p></div>
+        </div>
+        <div class="space-y-4">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div data-field="namaOrtu">
+              <label class="lab">Nama Orang Tua / Wali <span class="text-rose-500">*</span></label>
+              <input id="fNamaOrtu" type="text" autocomplete="off" placeholder="Nama Ayah / Ibu / Wali" class="inp" />
+              <p class="emsg">Nama orang tua / wali wajib diisi.</p>
+            </div>
+            <div data-field="pekerjaan">
+              <label class="lab">Pekerjaan <span class="text-rose-500">*</span></label>
+              <div id="selPekerjaan"></div>
+              <p class="emsg">Pilih pekerjaan orang tua / wali.</p>
+            </div>
+          </div>
+          <div data-field="alamat">
+            <label class="lab">Alamat Lengkap <span class="text-rose-500">*</span></label>
+            <textarea id="fAlamat" rows="3" placeholder="Dusun / jalan, desa, kecamatan, kabupaten" class="inp"></textarea>
+            <p class="emsg">Alamat lengkap wajib diisi.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 3 -->
+      <section class="rise card rounded-[24px] p-5 sm:p-7" style="animation-delay:.15s">
+        <div class="flex items-center gap-3 mb-5">
+          <div class="badge bg-amber-100" style="animation-delay:-2s">🧭</div>
+          <div><h2 class="font-extrabold text-sky-900 leading-tight">Keterangan Keluar</h2><p class="text-xs text-sky-700/70">Alasan dan tanggal surat</p></div>
+        </div>
+        <div class="space-y-4">
+          <div data-field="alasan">
+            <label class="lab">Alasan Keluar <span class="text-rose-500">*</span></label>
+            <div id="selAlasan"></div>
+            <p class="emsg">Pilih alasan keluar.</p>
+          </div>
+          <div data-field="tglSurat">
+            <label class="lab">Tanggal Surat Keluar <span class="text-rose-500">*</span></label>
+            <div id="selTglSurat"></div>
+            <p class="emsg">Tanggal surat keluar wajib diisi lengkap.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 4 -->
+      <section class="rise card rounded-[24px] p-5 sm:p-7" style="animation-delay:.2s">
+        <div class="flex items-center gap-3 mb-5">
+          <div class="badge bg-rose-100" style="animation-delay:-3s">⚓</div>
+          <div><h2 class="font-extrabold text-sky-900 leading-tight">Bukti Surat Keluar</h2><p class="text-xs text-sky-700/70">PDF, JPG, atau PNG &middot; maksimal 5 MB</p></div>
+        </div>
+        <div data-field="berkas">
+          <div id="drop" class="drop" tabindex="0">
+            <div class="ico w-12 h-12 rounded-2xl bg-white shadow-sm border border-cyan-100 mx-auto flex items-center justify-center text-cyan-600">
+              <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4M7 9l5-5 5 5"/><path d="M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"/></svg>
+            </div>
+            <p class="mt-3 text-sm font-bold text-sky-800">Seret berkas ke sini atau <span class="text-cyan-600">pilih dari perangkat</span></p>
+            <p class="text-xs text-sky-600/70 mt-1">Foto surat atau hasil scan sudah cukup</p>
+          </div>
+          <input id="fBuktiFile" type="file" accept=".pdf,image/*" class="hidden" />
+          <div id="fileChip" class="hidden mt-3 flex items-center gap-3 rounded-2xl bg-cyan-50 border border-cyan-100 px-4 py-3 rise">
+            <div class="w-9 h-9 rounded-xl bg-white text-cyan-600 flex items-center justify-center shrink-0">
+              <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/></svg>
+            </div>
+            <div class="min-w-0 flex-1"><p id="fileName" class="text-sm font-bold text-sky-900 truncate"></p><p id="fileSize" class="text-xs text-sky-600"></p></div>
+            <button type="button" onclick="clearFile()" class="w-8 h-8 rounded-lg hover:bg-white text-slate-400 hover:text-rose-500 transition flex items-center justify-center" aria-label="Hapus berkas">
+              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+            </button>
+          </div>
+          <p class="emsg" id="fileErr"></p>
+        </div>
+      </section>
+
+      <button type="submit" id="btnSubmit" class="btn-main rise w-full py-4 rounded-2xl text-white font-extrabold text-sm tracking-wide shadow-xl shadow-cyan-600/30 flex items-center justify-center gap-2.5" style="animation-delay:.25s">
+        <span id="btnLabel" class="relative z-10">Kirim Pengajuan Siswa Keluar ⛵</span>
+      </button>
+      <p class="text-center text-xs text-sky-700/70">Dengan mengirim, Anda menyatakan data di atas benar dan sesuai dokumen resmi.</p>
+    </form>
+  </main>
+
+  <script>
+    // ====== KONFIGURASI ======
+    const API_URL = "https://script.google.com/macros/s/AKfycbyGKpcixWH0f0bZP28BQG3hka9PX34HNgPKtseC4iKYObhsSYSqoPjosY6aopnAjhMBBg/exec";
+
+    // Ubah daftar ini sesuai jurusan & jumlah rombel di sekolah
+    const KELAS_CFG = { tingkat: ['X', 'XI', 'XII'], jurusan: ['TKJ', 'TKR'], rombel: 3 };
+
+    const PEKERJAAN = [
+      'Tidak bekerja', 'Petani', 'Nelayan', 'Peternak', 'PNS / TNI / Polri', 'Karyawan Swasta',
+      'Pedagang Kecil', 'Pedagang Besar', 'Wiraswasta', 'Wirausaha', 'Buruh', 'Pensiunan',
+      'Sudah meninggal', 'Lainnya'
+    ];
+
+    const ALASAN = [
+      { value: 'MENGUNDURKAN DIRI', label: 'Mengundurkan Diri' },
+      { value: 'MUTASI', label: 'Mutasi (Pindah Sekolah)' },
+      { value: 'WAFAT', label: 'Wafat' },
+      { value: 'PUTUS SEKOLAH', label: 'Putus Sekolah' },
+      { value: 'LAINNYA', label: 'Lainnya' }
+    ];
+
+    // ====== GELEMBUNG LATAR ======
+    (function () {
+      const box = document.getElementById('bubbles');
+      for (let i = 0; i < 22; i++) {
+        const b = document.createElement('span');
+        const s = 8 + Math.random() * 30;
+        b.className = 'bubble';
+        b.style.cssText = `left:${Math.random() * 100}%;width:${s}px;height:${s}px;animation-duration:${9 + Math.random() * 14}s;animation-delay:${-Math.random() * 20}s`;
+        box.appendChild(b);
+      }
+    })();
+
+    // ====== PUSTAKA UI (dropdown, tanggal, toast) ======
+    const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]));
+    const CHEV = '<svg class="cs-chev" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 7.5l5 5 5-5"/></svg>';
+    const _selects = [];
+    function closeAllSelects(except) { _selects.forEach(s => { if (s !== except) s.close(); }); }
+
+    function makeSelect(root, cfg = {}) {
+      const norm = a => a.map(o => typeof o === 'object' ? o : { value: o, label: o });
+      let options = norm(cfg.options || []);
+      let value = cfg.value || '';
+      const placeholder = cfg.placeholder || 'Pilih…';
+      root.classList.add('cs');
+      root.innerHTML = `<button type="button" class="cs-btn"><span class="cs-label truncate"></span>${CHEV}</button>`;
+      const btn = root.querySelector('.cs-btn'), label = root.querySelector('.cs-label');
+      const pop = document.createElement('div');
+      pop.className = 'cs-pop';
+      pop.innerHTML = (cfg.searchable ? '<input type="text" class="cs-search" placeholder="Cari…" autocomplete="off">' : '') + '<ul class="cs-list"></ul>';
+      document.body.appendChild(pop);
+      const list = pop.querySelector('.cs-list'), search = pop.querySelector('.cs-search');
+
+      function paintLabel() {
+        const f = options.find(o => o.value === value);
+        label.textContent = f ? f.label : placeholder;
+        label.classList.toggle('ph', !f);
+      }
+      function paintList(filter = '') {
+        const q = filter.toLowerCase();
+        const items = options.filter(o => o.label.toLowerCase().includes(q));
+        list.innerHTML = items.length ? items.map(o =>
+          `<li class="cs-item ${o.value === value ? 'sel' : ''}" data-v="${esc(o.value)}"><span>${esc(o.label)}</span>${o.value === value ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>' : ''}</li>`
+        ).join('') : '<li class="cs-empty">Tidak ditemukan</li>';
+      }
+      function open() {
+        closeAllSelects(api);
+        if (search) search.value = '';
+        paintList('');
+        const r = btn.getBoundingClientRect();
+        pop.style.width = r.width + 'px';
+        pop.style.left = r.left + 'px';
+        const need = Math.min(250, options.length * 38 + 16) + (search ? 50 : 0);
+        const below = innerHeight - r.bottom;
+        if (below < need && r.top > below) {
+          pop.style.top = 'auto'; pop.style.bottom = (innerHeight - r.top + 6) + 'px';
+          list.style.maxHeight = Math.max(120, Math.min(240, r.top - 90)) + 'px';
+        } else {
+          pop.style.bottom = 'auto'; pop.style.top = (r.bottom + 6) + 'px';
+          list.style.maxHeight = Math.max(120, Math.min(240, below - 90)) + 'px';
+        }
+        pop.classList.add('show'); root.classList.add('cs-open');
+        if (search) setTimeout(() => search.focus(), 0);
+      }
+      function close() { pop.classList.remove('show'); root.classList.remove('cs-open'); }
+
+      const api = {
+        get value() { return value; },
+        set(v) { value = v || ''; paintLabel(); },
+        setOptions(o) { options = norm(o); if (!options.some(x => x.value === value)) value = ''; paintLabel(); },
+        open, close, el: root
+      };
+      btn.addEventListener('click', () => pop.classList.contains('show') ? close() : open());
+      list.addEventListener('click', e => {
+        const li = e.target.closest('.cs-item'); if (!li) return;
+        value = li.dataset.v; paintLabel(); close();
+        if (cfg.onChange) cfg.onChange(value);
+      });
+      if (search) search.addEventListener('input', () => paintList(search.value));
+      paintLabel();
+      _selects.push(api);
+      return api;
+    }
+    document.addEventListener('mousedown', e => { if (!e.target.closest('.cs-pop') && !e.target.closest('.cs')) closeAllSelects(); });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeAllSelects(); });
+    window.addEventListener('resize', () => closeAllSelects());
+    document.addEventListener('scroll', e => { if (!(e.target.nodeType === 1 && e.target.closest('.cs-pop'))) closeAllSelects(); }, true);
+
+    const BULAN = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+    function makeDate(root, cfg = {}) {
+      const now = new Date();
+      const yFrom = cfg.yearFrom ?? now.getFullYear() - 1, yTo = cfg.yearTo ?? now.getFullYear() + 1;
+      root.style.display = 'grid'; root.style.gridTemplateColumns = '.85fr 1.5fr 1fr'; root.style.gap = '.5rem';
+      root.innerHTML = '<div></div><div></div><div></div>';
+      const [dEl, mEl, yEl] = root.children;
+      const years = []; for (let y = yTo; y >= yFrom; y--) years.push(String(y));
+      const dayOpts = n => Array.from({ length: n }, (_, i) => ({ value: String(i + 1).padStart(2, '0'), label: String(i + 1) }));
+      const change = () => { fixDays(); if (cfg.onChange) cfg.onChange(api.value); };
+      const d = makeSelect(dEl, { placeholder: 'Tgl', options: dayOpts(31), onChange: change });
+      const m = makeSelect(mEl, { placeholder: 'Bulan', options: BULAN.map((b, i) => ({ value: String(i + 1).padStart(2, '0'), label: b })), onChange: change });
+      const y = makeSelect(yEl, { placeholder: 'Tahun', options: years, onChange: change });
+      function fixDays() {
+        const mo = +m.value, ye = +y.value || 2000;
+        d.setOptions(dayOpts(mo ? new Date(ye, mo, 0).getDate() : 31));
+      }
+      const api = {
+        get value() { return d.value && m.value && y.value ? `${y.value}-${m.value}-${d.value}` : ''; },
+        set(iso) {
+          const mt = String(iso || '').match(/^(\d{4})-(\d{2})-(\d{2})/);
+          if (!mt) { d.set(''); m.set(''); y.set(''); fixDays(); return; }
+          if (!years.includes(mt[1])) { years.push(mt[1]); years.sort((a, b) => b - a); y.setOptions(years); }
+          y.set(mt[1]); m.set(mt[2]); fixDays(); d.set(mt[3]);
+        }
+      };
+      return api;
+    }
+
+    // Tanggal satuan: kalender kustom (bukan bawaan sistem)
+    function makeCalendar(root, cfg = {}) {
+      const p2 = n => String(n).padStart(2, '0');
+      const parse = s => { const m = String(s || '').match(/^(\d{4})-(\d{2})-(\d{2})/); return m ? new Date(+m[1], +m[2] - 1, +m[3]) : null; };
+      const iso = d => `${d.getFullYear()}-${p2(d.getMonth() + 1)}-${p2(d.getDate())}`;
+      const minD = parse(cfg.min), maxD = parse(cfg.max);
+      const inRange = d => (!minD || d >= minD) && (!maxD || d <= maxD);
+      const clamp = d => maxD && d > maxD ? new Date(maxD) : minD && d < minD ? new Date(minD) : d;
+      const HARI_S = ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'];
+      const CAL_IC = '<svg class="cal-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>';
+      let value = '', view = 'day';
+      let cur = clamp(new Date()); cur = new Date(cur.getFullYear(), cur.getMonth(), 1);
+      root.classList.add('cs');
+      root.innerHTML = `<button type="button" class="cs-btn"><span class="cs-label truncate"></span>${CAL_IC}</button>`;
+      const btn = root.querySelector('.cs-btn'), label = root.querySelector('.cs-label');
+      const pop = document.createElement('div');
+      pop.className = 'cs-pop cal-pop';
+      document.body.appendChild(pop);
+
+      function paintLabel() {
+        const d = parse(value);
+        label.textContent = d ? `${d.getDate()} ${BULAN[d.getMonth()]} ${d.getFullYear()}` : (cfg.placeholder || 'Pilih tanggal');
+        label.classList.toggle('ph', !d);
+      }
+      function render() {
+        const y = cur.getFullYear(), m = cur.getMonth();
+        let h = '';
+        if (view === 'day') {
+          const first = new Date(y, m, 1), last = new Date(y, m + 1, 0);
+          const prevOk = !minD || new Date(y, m, 0) >= minD, nextOk = !maxD || new Date(y, m + 1, 1) <= maxD;
+          h += `<div class="cal-head"><button type="button" class="cal-nav" data-a="prev" ${prevOk ? '' : 'disabled'}>‹</button><button type="button" class="cal-title" data-a="year">${BULAN[m]} ${y} ▾</button><button type="button" class="cal-nav" data-a="next" ${nextOk ? '' : 'disabled'}>›</button></div>`;
+          h += `<div class="cal-grid cal-wd">${HARI_S.map(x => `<span>${x}</span>`).join('')}</div><div class="cal-grid">`;
+          for (let i = 0; i < (first.getDay() + 6) % 7; i++) h += '<span></span>';
+          const todayIso = iso(new Date());
+          for (let d = 1; d <= last.getDate(); d++) {
+            const dt = new Date(y, m, d), s = iso(dt);
+            h += `<button type="button" class="cal-day ${s === value ? 'sel' : ''} ${s === todayIso ? 'today' : ''}" data-d="${s}" ${inRange(dt) ? '' : 'disabled'}>${d}</button>`;
+          }
+          h += '</div><div class="cal-foot"><button type="button" data-a="clear">Hapus</button><button type="button" data-a="today">Hari ini</button></div>';
+        } else if (view === 'year') {
+          const y0 = minD ? minD.getFullYear() : y - 60, y1 = maxD ? maxD.getFullYear() : y + 5;
+          h += '<div class="cal-head"><button type="button" class="cal-title" data-a="day" style="margin:0 auto">Pilih tahun</button></div><div class="cal-years">';
+          for (let k = y1; k >= y0; k--) h += `<button type="button" class="cal-opt ${k === y ? 'sel' : ''}" data-y="${k}">${k}</button>`;
+          h += '</div>';
+        } else {
+          h += `<div class="cal-head"><button type="button" class="cal-title" data-a="year" style="margin:0 auto">${y} ▾</button></div><div class="cal-months">`;
+          BULAN.forEach((n, i) => {
+            const ok = (!minD || new Date(y, i + 1, 0) >= minD) && (!maxD || new Date(y, i, 1) <= maxD);
+            h += `<button type="button" class="cal-opt ${i === m ? 'sel' : ''}" data-m="${i}" ${ok ? '' : 'disabled'}>${n.slice(0, 3)}</button>`;
+          });
+          h += '</div>';
+        }
+        pop.innerHTML = h;
+        if (view === 'year') { const s = pop.querySelector('.cal-opt.sel'), box = pop.querySelector('.cal-years'); if (s) box.scrollTop = Math.max(0, s.offsetTop - 80); }
+      }
+      function open() {
+        closeAllSelects(api);
+        const d = parse(value);
+        cur = d ? new Date(d.getFullYear(), d.getMonth(), 1) : (() => { const c = clamp(new Date()); return new Date(c.getFullYear(), c.getMonth(), 1); })();
+        view = 'day';
+        const r = btn.getBoundingClientRect(), w = Math.max(r.width, 300);
+        pop.style.width = w + 'px';
+        pop.style.left = Math.max(8, Math.min(r.left, innerWidth - w - 8)) + 'px';
+        if (innerHeight - r.bottom < 360 && r.top > innerHeight - r.bottom) { pop.style.top = 'auto'; pop.style.bottom = (innerHeight - r.top + 6) + 'px'; }
+        else { pop.style.bottom = 'auto'; pop.style.top = (r.bottom + 6) + 'px'; }
+        pop.classList.add('show'); root.classList.add('cs-open');
+        render();
+      }
+      function close() { pop.classList.remove('show'); root.classList.remove('cs-open'); }
+      function pick(v) { value = v; paintLabel(); close(); if (cfg.onChange) cfg.onChange(value); }
+
+      const api = {
+        get value() { return value; },
+        set(v) { value = parse(v) ? iso(parse(v)) : ''; paintLabel(); },
+        open, close, el: root
+      };
+      btn.addEventListener('click', () => pop.classList.contains('show') ? close() : open());
+      pop.addEventListener('click', e => {
+        const b = e.target.closest('button'); if (!b || b.disabled) return;
+        const ds = b.dataset;
+        if (ds.d) return pick(ds.d);
+        if (ds.y) { cur = new Date(+ds.y, cur.getMonth(), 1); view = 'month'; return render(); }
+        if (ds.m) { cur = new Date(cur.getFullYear(), +ds.m, 1); view = 'day'; return render(); }
+        if (ds.a === 'clear') return pick('');
+        if (ds.a === 'today') { const t0 = new Date(); return inRange(t0) ? pick(iso(t0)) : undefined; }
+        if (ds.a === 'prev') cur = new Date(cur.getFullYear(), cur.getMonth() - 1, 1);
+        else if (ds.a === 'next') cur = new Date(cur.getFullYear(), cur.getMonth() + 1, 1);
+        else if (ds.a === 'year') view = 'year';
+        else if (ds.a === 'day') view = 'day';
+        render();
+      });
+      paintLabel();
+      _selects.push(api);
+      return api;
+    }
+
+    function toast(msg, type = 'ok') {
+      let box = document.getElementById('toastBox');
+      if (!box) { box = document.createElement('div'); box.id = 'toastBox'; box.className = 'toast-box'; document.body.appendChild(box); }
+      const t = document.createElement('div');
+      t.className = 'toast ' + type;
+      const col = type === 'err' ? '#f43f5e' : type === 'ok' ? '#10b981' : '#0891b2';
+      const path = type === 'err' ? '<path d="M12 8v5M12 16.5v.01"/><circle cx="12" cy="12" r="9"/>' : '<path d="M5 12.5l4.5 4.5L19 7.5"/>';
+      t.innerHTML = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="${col}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex:none;margin-top:1px">${path}</svg><span>${esc(msg)}</span>`;
+      box.appendChild(t);
+      setTimeout(() => { t.classList.add('out'); setTimeout(() => t.remove(), 260); }, 3800);
+    }
+
+    // ====== LOGIKA FORM ======
+    const $ = id => document.getElementById(id);
+    const JURUSAN_KELAS = ['DPB', 'RPL', 'TITL', 'TKJ 1', 'TKJ 2', 'TKR 1', 'TKR 2', 'TKR 3', 'TPK 1', 'TPK 2', 'TPm 1', 'TPm 2'];
+    const kelasList = [];
+    ['X', 'XI', 'XII'].forEach(t => JURUSAN_KELAS.forEach(j => kelasList.push(`${t} ${j}`)));
+    kelasList.push({ value: '__lain', label: 'Kelas lainnya (ketik manual)' });
+
+    const field = name => document.querySelector(`[data-field="${name}"]`);
+    const clearErr = name => field(name).classList.remove('has-err');
+    const setErr = (name, msg) => { const f = field(name); f.classList.add('has-err'); if (msg) f.querySelector('.emsg').textContent = msg; };
+
+    const now = new Date(), thisYear = now.getFullYear();
+    const ctl = {
+      kelas: makeSelect($('selKelas'), {
+        placeholder: 'Pilih kelas', searchable: true, options: kelasList,
+        onChange: v => { $('fKelasLain').classList.toggle('hidden', v !== '__lain'); if (v === '__lain') $('fKelasLain').focus(); clearErr('kelas'); updateProgress(); }
+      }),
+      tglLahir: makeCalendar($('selTglLahir'), { min: `${thisYear - 30}-01-01`, max: `${thisYear - 9}-12-31`, onChange: () => { clearErr('tglLahir'); updateProgress(); } }),
+      pekerjaan: makeSelect($('selPekerjaan'), { placeholder: 'Pilih pekerjaan', options: PEKERJAAN, onChange: () => { clearErr('pekerjaan'); updateProgress(); } }),
+      alasan: makeSelect($('selAlasan'), { placeholder: 'Pilih alasan keluar', options: ALASAN, onChange: () => { clearErr('alasan'); updateProgress(); } }),
+      tglSurat: makeCalendar($('selTglSurat'), { min: `${thisYear - 2}-01-01`, max: `${thisYear + 1}-12-31`, onChange: () => { clearErr('tglSurat'); updateProgress(); } })
+    };
+
+    const kelasValue = () => ctl.kelas.value === '__lain' ? $('fKelasLain').value.trim().toUpperCase() : ctl.kelas.value;
+    const txt = id => $(id).value.trim();
+
+    const REQUIRED = [
+      ['nama', () => txt('fNama')], ['kelas', kelasValue], ['tempatLahir', () => txt('fTempatLahir')],
+      ['tglLahir', () => ctl.tglLahir.value], ['namaOrtu', () => txt('fNamaOrtu')], ['pekerjaan', () => ctl.pekerjaan.value],
+      ['alamat', () => txt('fAlamat')], ['alasan', () => ctl.alasan.value], ['tglSurat', () => ctl.tglSurat.value]
+    ];
+
+    function updateProgress() {
+      const n = REQUIRED.filter(([, g]) => g()).length;
+      $('progText').textContent = `${n} dari ${REQUIRED.length} terisi`;
+      $('progBar').style.width = Math.round(n / REQUIRED.length * 100) + '%';
+    }
+
+    ['fNama', 'fTempatLahir', 'fNamaOrtu', 'fAlamat', 'fKelasLain'].forEach(id => {
+      $(id).addEventListener('input', () => {
+        const w = $(id).closest('[data-field]'); if (w) w.classList.remove('has-err');
+        updateProgress();
+      });
+    });
+
+    // --- Berkas ---
+    let pickedFile = null;
+    const fmtSize = b => b < 1024 * 1024 ? (b / 1024).toFixed(0) + ' KB' : (b / 1024 / 1024).toFixed(2) + ' MB';
+    function setFile(f) {
+      clearErr('berkas');
+      if (!f) return;
+      const okType = f.type === 'application/pdf' || f.type.startsWith('image/');
+      if (!okType) { setErr('berkas', 'Format harus PDF, JPG, atau PNG.'); return; }
+      if (f.size > 5 * 1024 * 1024) { setErr('berkas', 'Ukuran berkas maksimal 5 MB.'); return; }
+      pickedFile = f;
+      $('fileName').textContent = f.name; $('fileSize').textContent = fmtSize(f.size);
+      $('fileChip').classList.remove('hidden');
+    }
+    function clearFile() { pickedFile = null; $('fBuktiFile').value = ''; $('fileChip').classList.add('hidden'); clearErr('berkas'); }
+    const drop = $('drop');
+    drop.addEventListener('click', () => $('fBuktiFile').click());
+    drop.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); $('fBuktiFile').click(); } });
+    $('fBuktiFile').addEventListener('change', e => setFile(e.target.files[0]));
+    ['dragenter', 'dragover'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add('over'); }));
+    ['dragleave', 'drop'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove('over'); }));
+    drop.addEventListener('drop', e => setFile(e.dataTransfer.files[0]));
+
+    // --- Validasi & kirim ---
+    function validate() {
+      let first = null;
+      const msgs = { nama: 'Nama siswa wajib diisi.', kelas: 'Pilih kelas siswa.', tempatLahir: 'Tempat lahir wajib diisi.', tglLahir: 'Lengkapi tanggal, bulan, dan tahun lahir.', namaOrtu: 'Nama orang tua / wali wajib diisi.', pekerjaan: 'Pilih pekerjaan orang tua / wali.', alamat: 'Alamat lengkap wajib diisi.', alasan: 'Pilih alasan keluar.', tglSurat: 'Tanggal surat keluar wajib diisi lengkap.' };
+      REQUIRED.forEach(([name, getter]) => {
+        if (!getter()) { setErr(name, msgs[name]); if (!first) first = field(name); }
+        else clearErr(name);
+      });
+      if (first) { first.scrollIntoView({ behavior: 'smooth', block: 'center' }); toast('Masih ada kolom wajib yang belum lengkap.', 'err'); }
+      return !first;
+    }
+
+    const readFile = f => new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(r.result); r.onerror = rej; r.readAsDataURL(f); });
+
+    function setLoading(on) {
+      const b = $('btnSubmit'); b.disabled = on;
+      b.innerHTML = on ? '<div class="spinner relative z-10"></div><span class="relative z-10">Mengirim data &amp; berkas…</span>' : '<span id="btnLabel" class="relative z-10">Kirim Pengajuan Siswa Keluar ⛵</span>';
+    }
+
+    async function handleSubmit(e) {
+      e.preventDefault();
+      if (!validate()) return;
+      setLoading(true);
+      try {
+        const payload = {
+          action: 'submit', sumber: 'GitHub Form Publik',
+          nama: txt('fNama'), kelas: kelasValue(), tempatLahir: txt('fTempatLahir'), tanggalLahir: ctl.tglLahir.value,
+          namaOrtu: txt('fNamaOrtu'), pekerjaanOrtu: ctl.pekerjaan.value, alamat: txt('fAlamat'),
+          alasan: ctl.alasan.value, tglSuratKeluar: ctl.tglSurat.value,
+          fileBase64: '', fileName: '', fileMimeType: ''
+        };
+        if (pickedFile) { payload.fileBase64 = await readFile(pickedFile); payload.fileName = pickedFile.name; payload.fileMimeType = pickedFile.type; }
+
+        // text/plain agar tidak memicu preflight CORS di Apps Script
+        const res = await fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload) });
+        const result = await res.json();
+        if (result.success) {
+          const alasanLabel = (ALASAN.find(a => a.value === payload.alasan) || {}).label || payload.alasan;
+          $('successSummary').innerHTML =
+            `<div class="flex justify-between gap-3"><span class="text-sky-600">Nama</span><b class="text-right">${esc(payload.nama)}</b></div>` +
+            `<div class="flex justify-between gap-3"><span class="text-sky-600">Kelas</span><b>${esc(payload.kelas)}</b></div>` +
+            `<div class="flex justify-between gap-3"><span class="text-sky-600">Alasan</span><b class="text-right">${esc(alasanLabel)}</b></div>`;
+          $('pengajuanForm').classList.add('hidden');
+          $('successBox').classList.remove('hidden');
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        } else {
+          toast(result.message || 'Gagal menyimpan data.', 'err');
+        }
+      } catch (err) {
+        toast('Koneksi ke server gagal: ' + err.message, 'err');
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    function resetFormView() {
+      $('pengajuanForm').reset();
+      ['fNama', 'fTempatLahir', 'fNamaOrtu', 'fAlamat', 'fKelasLain'].forEach(id => $(id).value = '');
+      $('fKelasLain').classList.add('hidden');
+      ctl.kelas.set(''); ctl.pekerjaan.set(''); ctl.alasan.set(''); ctl.tglLahir.set(''); ctl.tglSurat.set('');
+      clearFile();
+      document.querySelectorAll('.has-err').forEach(el => el.classList.remove('has-err'));
+      updateProgress();
+      $('successBox').classList.add('hidden');
+      $('pengajuanForm').classList.remove('hidden');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    updateProgress();
+  </script>
+</body>
+</html>

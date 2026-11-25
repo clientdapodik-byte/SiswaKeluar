@@ -1,0 +1,1148 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Panel Operator Dapodik</title>
+  <meta name="theme-color" content="#0284c7">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root { color-scheme: light; --sea: #0284c7; --sea-d: #0369a1; --line: #e2eef5; }
+    body { font-family: 'Plus Jakarta Sans', system-ui, sans-serif; background: #f3f9fc; color: #0f2a3a; min-height: 100vh; }
+    button, input, textarea { font-family: inherit; }
+    ::-webkit-scrollbar { width: 8px; height: 8px; } ::-webkit-scrollbar-thumb { background: #bcd7e6; border-radius: 8px; }
+
+    .card { background: #fff; border: 1px solid var(--line); border-radius: 16px; box-shadow: 0 1px 2px rgba(3,105,161,.05); }
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: .4rem; padding: .5rem .95rem; border-radius: 10px; font-size: .8rem; font-weight: 700; white-space: nowrap; border: 1px solid transparent; transition: .15s; }
+    .btn:hover { filter: brightness(.96); } .btn:active { transform: scale(.97); }
+    .btn:disabled { opacity: .45; cursor: not-allowed; }
+    .btn-primary { background: var(--sea); color: #fff; }
+    .btn-green { background: #10b981; color: #fff; }
+    .btn-soft { background: #e0f2fe; color: var(--sea-d); }
+    .btn-ghost { background: #fff; color: #475569; border-color: #d7e6ee; }
+    .btn-ghost:hover { background: #f1f7fa; }
+    .btn-red { background: #fff1f2; color: #e11d48; border-color: #fecdd3; }
+    .btn-amber { background: #f59e0b; color: #fff; }
+
+    .inp { width: 100%; background: #fff; border: 1.5px solid #d7e6ee; border-radius: 10px; padding: .6rem .85rem; font-size: .875rem; outline: none; transition: .15s; }
+    .inp:focus { border-color: var(--sea); box-shadow: 0 0 0 3px rgba(2,132,199,.15); }
+    .lbl { display: block; margin-bottom: .3rem; font-size: .75rem; font-weight: 700; color: #475569; }
+    .cs-btn { width: 100%; display: flex; align-items: center; justify-content: space-between; gap: .5rem; text-align: left; background: #fff; border: 1.5px solid #d7e6ee; border-radius: 10px; padding: .6rem .85rem; font-size: .875rem; cursor: pointer; transition: .15s; }
+    .cs-btn:hover { border-color: #93c5e0; }
+    .cs-open .cs-btn, .cs-btn:focus-visible { outline: none; border-color: var(--sea); box-shadow: 0 0 0 3px rgba(2,132,199,.15); }
+    .cs-label.ph { color: #94a3b8; }
+    .cs-chev { width: 16px; height: 16px; color: #94a3b8; transition: transform .2s; flex: none; }
+    .cs-open .cs-chev { transform: rotate(180deg); }
+    .cs-pop { position: fixed; z-index: 400; background: #fff; border: 1px solid var(--line); border-radius: 12px; box-shadow: 0 18px 40px -10px rgba(15,42,58,.25); padding: 6px; display: none; }
+    .cs-pop.show { display: block; }
+    .cs-list { max-height: 240px; overflow-y: auto; list-style: none; margin: 0; padding: 0; }
+    .cs-item { padding: .5rem .7rem; border-radius: 8px; font-size: .85rem; cursor: pointer; display: flex; align-items: center; justify-content: space-between; gap: .5rem; }
+    .cs-item:hover { background: #f0f9ff; } .cs-item.sel { background: #e0f2fe; color: var(--sea-d); font-weight: 700; }
+    .cs-empty { padding: .8rem; font-size: .8rem; color: #94a3b8; text-align: center; }
+    .cs-search { width: 100%; border: 1.5px solid #d7e6ee; border-radius: 8px; padding: .45rem .7rem; font-size: .8rem; outline: none; margin-bottom: 6px; }
+
+    .toast-box { position: fixed; top: 16px; right: 16px; z-index: 600; display: flex; flex-direction: column; gap: 10px; width: min(340px, calc(100vw - 32px)); }
+    .toast { display: flex; gap: .6rem; align-items: flex-start; background: #fff; border-radius: 12px; padding: .8rem 1rem; font-size: .85rem; font-weight: 600; box-shadow: 0 12px 30px -10px rgba(15,42,58,.3); border-left: 4px solid var(--sea); animation: tin .25s ease-out; }
+    .toast.ok { border-left-color: #10b981; } .toast.err { border-left-color: #f43f5e; }
+    .toast.out { opacity: 0; transform: translateX(20px); transition: .25s; }
+    @keyframes tin { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: none; } }
+    @keyframes pop { from { opacity: 0; transform: scale(.97); } to { opacity: 1; transform: none; } }
+    .pop-in { animation: pop .2s ease-out; }
+    @keyframes spin { to { transform: rotate(360deg); } } .spin { animation: spin .8s linear infinite; }
+
+    .nav-btn { width: 100%; display: flex; align-items: center; gap: .7rem; padding: .6rem .85rem; border-radius: 10px; font-size: .875rem; font-weight: 600; color: #475569; text-align: left; transition: .15s; }
+    .nav-btn:hover { background: #f0f9ff; color: var(--sea-d); }
+    .nav-btn.active { background: #e0f2fe; color: var(--sea-d); }
+    .pill { display: inline-flex; align-items: center; gap: .3rem; padding: .2rem .6rem; border-radius: 999px; font-size: 11px; font-weight: 700; }
+    .pill.ok { background: #d1fae5; color: #047857; } .pill.warn { background: #fef3c7; color: #b45309; }
+    .tag { display: inline-block; padding: .12rem .45rem; border-radius: 6px; font-size: 11px; font-weight: 700; }
+    .tag.mute { background: #eef3f6; color: #64748b; } .tag.warn { background: #fef3c7; color: #b45309; } .tag.danger { background: #ffe4e6; color: #e11d48; }
+    .avatar { display: flex; align-items: center; justify-content: center; flex: none; border-radius: 12px; font-weight: 800; color: var(--sea-d); background: #e0f2fe; }
+    .track { height: 8px; border-radius: 99px; background: #e8f1f6; overflow: hidden; } .fill { height: 100%; border-radius: 99px; background: var(--sea); transition: width .5s; }
+    .copyable { cursor: pointer; transition: .15s; } .copyable:hover { background: #f0f9ff; }
+    .ck { width: 22px; height: 22px; border-radius: 6px; border: 2px solid #b6cfdc; background: #fff; display: inline-flex; align-items: center; justify-content: center; color: transparent; flex: none; cursor: pointer; }
+    .ck.on { background: var(--sea); border-color: var(--sea); color: #fff; }
+    .chip { padding: .4rem .85rem; border-radius: 999px; font-size: .8rem; font-weight: 700; color: #475569; background: #fff; border: 1px solid #d7e6ee; transition: .15s; }
+    .chip:hover { border-color: var(--sea); } .chip.on { background: var(--sea); border-color: var(--sea); color: #fff; }
+    .pg { min-width: 32px; height: 32px; padding: 0 .5rem; border-radius: 8px; font-weight: 700; font-size: .8rem; background: #fff; border: 1px solid #d7e6ee; }
+    .pg:hover:not(:disabled) { border-color: var(--sea); } .pg.on { background: var(--sea); border-color: var(--sea); color: #fff; } .pg:disabled { opacity: .35; }
+    .th { padding: .7rem 1rem; font-size: .72rem; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: .05em; text-align: left; white-space: nowrap; }
+    .drawer { transform: translateX(100%); transition: transform .3s ease; background: #fff; box-shadow: -20px 0 50px -20px rgba(15,42,58,.3); }
+    .drawer.open { transform: none; }
+    .login-wave { position: absolute; left: 0; right: 0; bottom: 0; height: 120px; background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 120' preserveAspectRatio='none'%3E%3Cpath fill='%23bae6fd' fill-opacity='.7' d='M0 60Q150 15 300 60T600 60T900 60T1200 60V120H0Z'/%3E%3C/svg%3E") repeat-x; background-size: 1200px 100%; animation: wv 18s linear infinite; }
+    @keyframes wv { to { background-position-x: 1200px; } }
+    /* ================= TEMA PANTAI & LAUT ================= */
+    :root { --wave: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 120' preserveAspectRatio='none'%3E%3Cpath fill='%23ffffff' d='M0 60Q150 15 300 60T600 60T900 60T1200 60V120H0Z'/%3E%3C/svg%3E"); }
+    body { background: linear-gradient(180deg, #bae6fd 0%, #e0f7fa 40%, #fff8e6 100%) fixed; overflow-x: hidden; }
+    #loginScreen, #app { position: relative; z-index: 1; }
+
+    #bg { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+    .sun-fixed { position: absolute; top: 74px; right: 7%; width: 84px; height: 84px; border-radius: 50%; background: radial-gradient(circle, #fff7c2, #fbbf24 70%); box-shadow: 0 0 60px 18px rgba(251,191,36,.5); animation: sunp 4s ease-in-out infinite; }
+    .sun-fixed::before { content: ''; position: absolute; inset: -30px; border-radius: 50%; background: repeating-conic-gradient(rgba(255,236,150,.5) 0 6deg, transparent 6deg 24deg); -webkit-mask: radial-gradient(circle, transparent 42px, #000 43px, #000 70px, transparent 71px); mask: radial-gradient(circle, transparent 42px, #000 43px, #000 70px, transparent 71px); animation: spin 30s linear infinite; }
+    @keyframes sunp { 0%,100% { transform: scale(1); } 50% { transform: scale(1.07); } }
+    .cloud { position: absolute; left: -260px; width: 200px; height: 56px; background: #fff; border-radius: 60px; opacity: .8; animation: drift linear infinite; }
+    .cloud::before, .cloud::after { content: ''; position: absolute; background: #fff; border-radius: 50%; }
+    .cloud::before { width: 90px; height: 90px; top: -40px; left: 24px; } .cloud::after { width: 70px; height: 70px; top: -26px; left: 94px; }
+    @keyframes drift { to { transform: translateX(calc(100vw + 520px)); } }
+    .gull { position: absolute; left: -60px; width: 40px; animation: fly linear infinite; }
+    .gull svg { width: 100%; animation: flap .7s ease-in-out infinite; }
+    @keyframes fly { to { transform: translate(calc(100vw + 120px), -50px); } }
+    @keyframes flap { 0%,100% { transform: scaleY(1); } 50% { transform: scaleY(.35); } }
+    .fish { position: absolute; font-size: 26px; opacity: .85; animation: swim linear infinite; }
+    @keyframes swim { 0% { transform: translateX(-80px); } 50% { transform: translateX(50vw) translateY(-14px); } 100% { transform: translateX(calc(100vw + 80px)); } }
+    .fish.rev { animation-name: swimR; }
+    @keyframes swimR { 0% { transform: translateX(calc(100vw + 80px)) scaleX(-1); } 50% { transform: translateX(45vw) translateY(12px) scaleX(-1); } 100% { transform: translateX(-80px) scaleX(-1); } }
+    .bubble { position: absolute; bottom: -40px; border-radius: 50%; background: radial-gradient(circle at 30% 30%, rgba(255,255,255,.95), rgba(125,211,252,.25) 60%, rgba(14,165,233,.15)); border: 1px solid rgba(255,255,255,.7); animation: rise-b linear infinite; }
+    @keyframes rise-b { 0% { transform: translate(0,0) scale(.6); opacity: 0; } 10% { opacity: 1; } 50% { transform: translate(18px,-50vh) scale(1); } 100% { transform: translate(-14px,-108vh) scale(1.1); opacity: 0; } }
+    .sea-fixed { position: absolute; left: 0; right: 0; bottom: 0; height: 120px; }
+    .sea-fixed .tint { position: absolute; inset: 0; background: linear-gradient(180deg, transparent, rgba(8,145,178,.25)); }
+    .wl { position: absolute; left: 0; right: 0; bottom: 0; background: var(--wave) repeat-x; background-size: 1200px 100%; animation: wv linear infinite; }
+    .wl.a { height: 92px; opacity: .35; animation-duration: 22s; } .wl.b { height: 70px; opacity: .5; animation-duration: 15s; animation-direction: reverse; bottom: -6px; } .wl.c { height: 50px; opacity: .7; animation-duration: 10s; bottom: -10px; }
+    @keyframes wv { to { background-position-x: 1200px; } }
+
+    .card { background: rgba(255,255,255,.84); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-color: rgba(186,230,253,.95); box-shadow: 0 14px 34px -18px rgba(3,105,161,.35); transition: transform .25s, box-shadow .25s; }
+    button.card:hover, #antreanList .card:hover { transform: translateY(-3px); box-shadow: 0 22px 44px -18px rgba(3,105,161,.45); }
+    #sidebar { background: linear-gradient(180deg, rgba(255,255,255,.9), rgba(207,250,254,.88)); backdrop-filter: blur(14px); border-right-color: rgba(125,211,252,.55); }
+    #sideLogo, #loginLogo { background: linear-gradient(135deg, #0891b2, #0ea5e9); animation: bob 3.2s ease-in-out infinite; }
+    @keyframes bob { 0%,100% { transform: translateY(0) rotate(-4deg); } 50% { transform: translateY(-4px) rotate(4deg); } }
+    @keyframes floaty { 0%,100% { transform: translateY(0) rotate(-3deg); } 50% { transform: translateY(-4px) rotate(3deg); } }
+    header.sticky { background: rgba(255,255,255,.72) !important; backdrop-filter: blur(14px); border-bottom-color: rgba(125,211,252,.5) !important; }
+    header.sticky::after { content: ''; position: absolute; left: 0; right: 0; bottom: -9px; height: 10px; background: var(--wave) repeat-x; background-size: 600px 100%; opacity: .75; animation: wv 12s linear infinite; pointer-events: none; }
+    #loginCard { background: rgba(255,255,255,.82); backdrop-filter: blur(16px); }
+    .nav-btn svg { transition: transform .25s; } .nav-btn:hover { transform: translateX(3px); } .nav-btn:hover svg { transform: scale(1.15) rotate(-6deg); }
+    .nav-btn.active { background: linear-gradient(90deg, #bae6fd, #e0f7fa); box-shadow: inset 3px 0 0 #0891b2; }
+    .btn { position: relative; overflow: hidden; }
+    .btn::after { content: ''; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(110deg, transparent 30%, rgba(255,255,255,.45) 50%, transparent 70%); transform: translateX(-130%); transition: transform .6s; }
+    .btn:hover::after { transform: translateX(130%); } .btn:hover { transform: translateY(-1px); }
+    .btn-primary { background: linear-gradient(135deg, #0891b2, #0ea5e9); }
+    .btn-green { background: linear-gradient(135deg, #059669, #10b981); }
+    .pill.warn { animation: pulseB 2s infinite; } @keyframes pulseB { 0%,100% { box-shadow: 0 0 0 0 rgba(245,158,11,.5); } 50% { box-shadow: 0 0 0 6px rgba(245,158,11,0); } }
+    .tag.danger { animation: blink 1.3s infinite; } @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: .35; } }
+    .avatar { transition: transform .25s; } tr:hover .avatar, button:hover > .avatar { transform: rotate(-6deg) scale(1.08); }
+    .kpi-ic { animation: floaty 3.6s ease-in-out infinite; }
+    .fill { background: linear-gradient(90deg, #22d3ee, #0ea5e9); position: relative; overflow: hidden; }
+    .fill::after { content: ''; position: absolute; inset: 0; background: linear-gradient(100deg, transparent 30%, rgba(255,255,255,.6) 50%, transparent 70%); animation: shine 2.6s ease-in-out infinite; }
+    @keyframes shine { 0%,40% { transform: translateX(-130%); } 100% { transform: translateX(130%); } }
+    .live { display: inline-flex; align-items: center; gap: .35rem; font-size: 10.5px; font-weight: 800; letter-spacing: .15em; color: #059669; }
+    .live i { width: 7px; height: 7px; border-radius: 50%; background: #10b981; box-shadow: 0 0 8px #10b981; animation: blink 1.4s infinite; }
+
+    .banner { position: relative; overflow: hidden; border-radius: 20px; padding: 1.4rem 1.5rem 3.4rem; color: #fff; background: linear-gradient(180deg, #0369a1, #0891b2 60%, #22d3ee); box-shadow: 0 18px 40px -18px rgba(3,105,161,.6); }
+    .banner .bsun { position: absolute; top: 14px; right: 7%; width: 54px; height: 54px; border-radius: 50%; background: radial-gradient(circle, #fff7c2, #fbbf24 70%); box-shadow: 0 0 36px 10px rgba(251,191,36,.5); animation: sunp 4s ease-in-out infinite; }
+    .banner .hw { position: absolute; left: 0; right: 0; bottom: -1px; height: 52px; }
+    .banner .hw .wl { filter: none; } .banner .hw .a { height: 52px; } .banner .hw .b { height: 40px; } .banner .hw .c { height: 28px; opacity: .95; }
+    .banner .boat { position: absolute; bottom: 20px; left: -60px; font-size: 34px; animation: sail 24s linear infinite; }
+    .banner .boat span { display: inline-block; animation: boatbob 2.6s ease-in-out infinite; }
+    @keyframes sail { to { transform: translateX(calc(100vw + 120px)); } }
+    @keyframes boatbob { 0%,100% { transform: translateY(0) rotate(-5deg); } 50% { transform: translateY(-7px) rotate(5deg); } }
+
+    /* animasi masuk (aktif sebentar saat ganti menu / login / sinkron pertama) */
+    @keyframes rise { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
+    @keyframes secIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+    @keyframes fillw { from { width: 0; } }
+    body.anim-on .sec:not(.hidden) > .banner, body.anim-on .sec:not(.hidden) .card { animation: rise .6s ease-out backwards; }
+    body.anim-on .sec .card:nth-child(1) { animation-delay: .05s; } body.anim-on .sec .card:nth-child(2) { animation-delay: .12s; }
+    body.anim-on .sec .card:nth-child(3) { animation-delay: .19s; } body.anim-on .sec .card:nth-child(4) { animation-delay: .26s; }
+    body.anim-on .sec .card:nth-child(n+5) { animation-delay: .33s; }
+    body.anim-on tbody tr, body.anim-on .divide-y > * { animation: secIn .45s ease-out backwards; }
+    body.anim-on tbody tr:nth-child(2), body.anim-on .divide-y > :nth-child(2) { animation-delay: .06s; }
+    body.anim-on tbody tr:nth-child(3), body.anim-on .divide-y > :nth-child(3) { animation-delay: .12s; }
+    body.anim-on tbody tr:nth-child(n+4), body.anim-on .divide-y > :nth-child(n+4) { animation-delay: .18s; }
+    body.anim-on .fill { animation: fillw 1s ease-out backwards; }
+    body.anim-on .nav-btn { animation: secIn .5s ease-out backwards; }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; } }
+
+    #loginScreen.hidden, #app.hidden { display: none !important; }
+    #printArea { display: none; }
+    @media print { html, body { background: #fff !important; } body > *:not(#printArea) { display: none !important; } #printArea { display: block !important; padding: 8mm; color: #000; background: #fff; } }
+  </style>
+</head>
+<body>
+
+  <!-- ==================== LATAR PANTAI ==================== -->
+  <div id="bg" aria-hidden="true">
+    <div class="sun-fixed"></div>
+    <div class="cloud" style="top:12%;animation-duration:90s;animation-delay:-20s"></div>
+    <div class="cloud" style="top:28%;scale:.7;animation-duration:120s;animation-delay:-70s;opacity:.6"></div>
+    <div class="gull" style="top:20%;animation-duration:32s;animation-delay:-6s"><svg viewBox="0 0 44 20" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round"><path d="M2 14Q12 0 22 12Q32 0 42 14"/></svg></div>
+    <div class="gull" style="top:32%;width:28px;animation-duration:44s;animation-delay:-24s;opacity:.8"><svg viewBox="0 0 44 20" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round"><path d="M2 14Q12 0 22 12Q32 0 42 14"/></svg></div>
+    <div class="fish" style="bottom:64px;animation-duration:28s">🐠</div>
+    <div class="fish rev" style="bottom:98px;animation-duration:36s;animation-delay:-12s;font-size:22px">🐟</div>
+    <div class="fish" style="bottom:44px;animation-duration:48s;animation-delay:-30s;font-size:30px">🐡</div>
+    <div class="fish rev" style="bottom:124px;animation-duration:60s;animation-delay:-8s;font-size:34px">🐬</div>
+    <div id="bubbles"></div>
+    <div class="sea-fixed"><div class="tint"></div><div class="wl a"></div><div class="wl b"></div><div class="wl c"></div></div>
+  </div>
+
+  <!-- ==================== LOGIN ==================== -->
+  <div id="loginScreen" class="relative min-h-screen flex items-center justify-center p-5 overflow-hidden">
+    <form onsubmit="handleLogin(event)" id="loginCard" class="card relative w-full max-w-sm p-7 pop-in">
+      <div class="w-12 h-12 rounded-2xl bg-sky-600 text-white flex items-center justify-center" id="loginLogo"></div>
+      <h2 class="mt-4 text-xl font-extrabold">Panel Operator Dapodik 🌊</h2>
+      <p class="text-sm text-slate-500 mt-1">Masukkan password admin untuk melanjutkan.</p>
+      <label class="lbl mt-5">Password Admin</label>
+      <div class="relative">
+        <input id="loginPass" type="password" required autocomplete="current-password" placeholder="Masukkan password" class="inp" style="padding-right:2.8rem" />
+        <button type="button" onclick="togglePass()" class="absolute right-1.5 top-1/2 -translate-y-1/2 w-9 h-9 rounded-lg text-slate-400 hover:text-sky-600 flex items-center justify-center" id="passToggle" aria-label="Tampilkan password"></button>
+      </div>
+      <button id="btnLogin" type="submit" class="btn btn-primary w-full mt-5 !py-3">Masuk</button>
+    </form>
+  </div>
+
+  <!-- ==================== APP ==================== -->
+  <div id="app" class="hidden">
+    <div id="scrim" onclick="toggleSidebar(false)" class="fixed inset-0 z-30 bg-slate-900/40 hidden"></div>
+
+    <aside id="sidebar" class="fixed inset-y-0 left-0 z-40 w-64 bg-white border-r border-sky-100 -translate-x-full lg:translate-x-0 transition-transform duration-300 flex flex-col">
+      <div class="flex items-center gap-3 px-5 py-5">
+        <div class="w-10 h-10 rounded-xl bg-sky-600 text-white flex items-center justify-center" id="sideLogo"></div>
+        <div><div class="font-extrabold leading-tight">Dapodik Desk</div><div class="text-[11px] text-slate-500">Siswa keluar &amp; mutasi</div></div>
+      </div>
+      <nav id="nav" class="px-3 space-y-1 flex-1 overflow-y-auto"></nav>
+      <div class="p-3 space-y-1 border-t border-sky-100">
+        <a href="https://docs.google.com/spreadsheets/d/1v_7LIHhn_FuXuaGYZDMJRUx2e3me-diq2byt8YvbD8Y/edit" target="_blank" rel="noopener" class="nav-btn"><span id="icSheet"></span>Buka Spreadsheet</a>
+        <button onclick="logout()" class="nav-btn hover:!bg-rose-50 hover:!text-rose-600"><span id="icLogout"></span>Keluar</button>
+      </div>
+    </aside>
+
+    <div class="lg:pl-64 min-h-screen flex flex-col">
+      <header class="sticky top-0 z-20 bg-white/90 backdrop-blur border-b border-sky-100">
+        <div class="px-4 sm:px-6 lg:px-8 py-3 flex items-center gap-3">
+          <button onclick="toggleSidebar(true)" class="lg:hidden w-10 h-10 rounded-xl border border-sky-100 flex items-center justify-center" id="btnMenu" aria-label="Menu"></button>
+          <div class="min-w-0 flex-1">
+            <h2 id="pageTitle" class="text-lg font-extrabold truncate">Dashboard</h2>
+            <p id="pageSubtitle" class="text-xs text-slate-500 truncate"></p>
+          </div>
+          <span class="live hidden sm:inline-flex"><i></i>LIVE</span>
+          <span id="syncInfo" class="hidden md:inline text-[11px] font-semibold text-slate-400"></span>
+          <button onclick="loadData()" class="btn btn-ghost"><span id="icSync"></span><span class="hidden sm:inline">Sinkronkan</span></button>
+          <button onclick="exportExcel('ALL')" class="btn btn-green"><span id="icDown"></span><span class="hidden sm:inline">Excel</span></button>
+        </div>
+      </header>
+
+      <main class="flex-1 px-4 sm:px-6 lg:px-8 py-6 max-w-[1300px] w-full mx-auto">
+        <section id="sec-dashboard" class="sec space-y-5"></section>
+
+        <section id="sec-antrean" class="sec hidden space-y-4">
+          <div id="antreanTop"></div>
+          <div id="antreanList" class="grid grid-cols-1 xl:grid-cols-2 gap-4"></div>
+        </section>
+
+        <section id="sec-data" class="sec hidden space-y-4">
+          <div class="card p-4 space-y-3">
+            <div class="relative">
+              <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" id="icSearch"></span>
+              <input id="searchInput" type="text" placeholder="Cari nama, kelas, orang tua, atau alamat…" class="inp" style="padding-left:2.5rem" />
+            </div>
+            <div class="flex flex-wrap items-center gap-2">
+              <button class="chip on" data-prog="ALL" onclick="setProg('ALL')">Semua</button>
+              <button class="chip" data-prog="PROSES" onclick="setProg('PROSES')">Menunggu</button>
+              <button class="chip" data-prog="DONE" onclick="setProg('DONE')">Selesai</button>
+              <div class="flex-1"></div>
+              <div id="selAlasan" class="w-44"></div>
+              <div id="selTingkat" class="w-36"></div>
+              <div id="selSort" class="w-40"></div>
+            </div>
+          </div>
+          <div class="card overflow-hidden">
+            <div class="overflow-x-auto">
+              <table class="w-full text-sm">
+                <thead class="bg-slate-50 border-b border-slate-100"><tr>
+                  <th class="th">Siswa</th><th class="th">Alasan</th><th class="th">Tgl Surat</th><th class="th">Bukti</th><th class="th">Status</th><th class="th text-right">Aksi</th>
+                </tr></thead>
+                <tbody id="tableBody" class="divide-y divide-slate-100"></tbody>
+              </table>
+            </div>
+            <div class="px-5 py-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2 bg-slate-50/60">
+              <span id="tableCount" class="text-xs font-semibold text-slate-500"></span>
+              <div class="flex flex-wrap items-center gap-3"><div id="pager" class="flex items-center gap-1.5"></div><div id="selPer" class="w-36"></div></div>
+            </div>
+          </div>
+        </section>
+
+        <section id="sec-riwayat" class="sec hidden space-y-4"></section>
+        <section id="sec-rekap" class="sec hidden space-y-5"></section>
+      </main>
+    </div>
+  </div>
+
+  <!-- ==================== DRAWER DETAIL ==================== -->
+  <div id="drawerScrim" onclick="closeDetail()" class="fixed inset-0 z-[150] bg-slate-900/40 hidden"></div>
+  <aside id="drawer" class="drawer fixed top-0 right-0 bottom-0 z-[160] w-full max-w-md flex flex-col">
+    <div id="drawerBody" class="flex-1 overflow-y-auto"></div>
+    <div id="drawerFoot" class="p-4 border-t border-slate-100 flex flex-wrap gap-2"></div>
+  </aside>
+
+  <!-- ==================== MODAL EDIT ==================== -->
+  <div id="editModal" class="fixed inset-0 z-[200] bg-slate-900/50 hidden items-start sm:items-center justify-center p-4 overflow-y-auto">
+    <div class="bg-white rounded-2xl w-full max-w-2xl my-auto pop-in">
+      <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+        <div><h3 class="font-extrabold text-lg">Edit Data Siswa</h3><p class="text-xs text-slate-500">Perbarui biodata dan status Dapodik</p></div>
+        <button onclick="closeEdit()" class="w-9 h-9 rounded-xl hover:bg-slate-100 text-slate-400 flex items-center justify-center" id="icCloseEdit" aria-label="Tutup"></button>
+      </div>
+      <form onsubmit="saveEdit(event)" class="p-6 space-y-4">
+        <input type="hidden" id="eRow" />
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div><label class="lbl">Nama Siswa</label><input id="eNama" class="inp" required /></div>
+          <div><label class="lbl">Kelas</label><div id="eKelas"></div><input id="eKelasLain" class="inp mt-2 hidden" placeholder="Ketik kelas" /></div>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div><label class="lbl">Tempat Lahir</label><input id="eTempat" class="inp" /></div>
+          <div><label class="lbl">Tanggal Lahir</label><div id="eTglLahir"></div></div>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div><label class="lbl">Nama Orang Tua</label><input id="eOrtu" class="inp" /></div>
+          <div><label class="lbl">Pekerjaan Orang Tua</label><div id="ePekerjaan"></div></div>
+        </div>
+        <div><label class="lbl">Alamat</label><input id="eAlamat" class="inp" /></div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div><label class="lbl">Alasan Keluar</label><div id="eAlasan"></div></div>
+          <div><label class="lbl">Tanggal Surat Keluar</label><div id="eTglSurat"></div></div>
+        </div>
+        <div class="rounded-xl bg-sky-50 border border-sky-100 p-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div><label class="lbl">Progres Dapodik</label><div id="eProgres"></div></div>
+          <div><label class="lbl">Tanggal Keluar Dapodik</label><div id="eTglDapodik"></div></div>
+        </div>
+        <div class="flex justify-end gap-2 pt-1">
+          <button type="button" onclick="closeEdit()" class="btn btn-ghost">Batal</button>
+          <button type="submit" id="btnSaveEdit" class="btn btn-primary" style="padding:.6rem 1.3rem">Simpan Perubahan</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL TANDAI DONE ==================== -->
+  <div id="doneModal" class="fixed inset-0 z-[200] bg-slate-900/50 hidden items-center justify-center p-4">
+    <div class="bg-white rounded-2xl w-full max-w-md pop-in">
+      <div class="p-6">
+        <div class="w-12 h-12 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center" id="icDoneModal"></div>
+        <h3 class="mt-4 font-extrabold text-lg">Tandai selesai di Dapodik</h3>
+        <p class="text-sm text-slate-500 mt-1">Pastikan siswa berikut sudah dikeluarkan pada aplikasi Dapodik.</p>
+        <div id="doneList" class="mt-4 max-h-40 overflow-y-auto rounded-xl bg-slate-50 border border-slate-100 divide-y divide-slate-100 text-sm"></div>
+        <label class="lbl mt-4">Tanggal keluar di Dapodik</label>
+        <div id="dDate"></div>
+      </div>
+      <div class="px-6 pb-6 flex justify-end gap-2">
+        <button onclick="closeDone()" class="btn btn-ghost">Batal</button>
+        <button id="btnConfirmDone" onclick="confirmDone()" class="btn btn-green" style="padding:.6rem 1.3rem">Ya, Tandai DONE</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="printArea"></div>
+
+  <script>
+    // ====== KONFIGURASI ======
+    const API_URL = "https://script.google.com/macros/s/AKfycbyGKpcixWH0f0bZP28BQG3hka9PX34HNgPKtseC4iKYObhsSYSqoPjosY6aopnAjhMBBg/exec";
+    const KELAS_CFG = { tingkat: ['X', 'XI', 'XII'], jurusan: ['TKJ', 'TKR'], rombel: 3 };
+    const PEKERJAAN = ['Tidak bekerja', 'Petani', 'Nelayan', 'Peternak', 'PNS / TNI / Polri', 'Karyawan Swasta', 'Pedagang Kecil', 'Pedagang Besar', 'Wiraswasta', 'Wirausaha', 'Buruh', 'Pensiunan', 'Sudah meninggal', 'Lainnya'];
+    const ALASAN = [
+      { value: 'MENGUNDURKAN DIRI', label: 'Mengundurkan Diri' }, { value: 'MUTASI', label: 'Mutasi (Pindah Sekolah)' },
+      { value: 'WAFAT', label: 'Wafat' }, { value: 'PUTUS SEKOLAH', label: 'Putus Sekolah' }, { value: 'LAINNYA', label: 'Lainnya' }
+    ];
+    const MENUS = [
+      { key: 'dashboard', icon: 'grid', label: 'Dashboard', sub: 'Ringkasan data siswa keluar' },
+      { key: 'antrean', icon: 'clock', label: 'Antrean Dapodik', sub: 'Siswa yang menunggu dikeluarkan di Dapodik', badge: true },
+      { key: 'data', icon: 'users', label: 'Data Siswa', sub: 'Cari, saring, dan kelola seluruh pengajuan' },
+      { key: 'riwayat', icon: 'history', label: 'Riwayat Dapodik', sub: 'Siswa yang sudah selesai, per tanggal' },
+      { key: 'rekap', icon: 'chart', label: 'Rekap & Laporan', sub: 'Rekap, unduh Excel, dan cetak' }
+    ];
+
+    // ====== IKON ======
+    const IC = {
+      grid: '<rect x="3" y="3" width="7" height="7" rx="1.8"/><rect x="14" y="3" width="7" height="7" rx="1.8"/><rect x="3" y="14" width="7" height="7" rx="1.8"/><rect x="14" y="14" width="7" height="7" rx="1.8"/>',
+      clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+      users: '<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6"/><path d="M16 4.6a3.5 3.5 0 0 1 0 6.8M18.5 14.3c1.9.7 3 2.5 3 5.2"/>',
+      file: '<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h4"/>',
+      history: '<path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5M12 7v5l3 2"/>',
+      chart: '<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>',
+      search: '<circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/>',
+      sync: '<path d="M21 12a9 9 0 0 1-15.5 6.2L3 16"/><path d="M3 12a9 9 0 0 1 15.5-6.2L21 8"/><path d="M21 3v5h-5M3 21v-5h5"/>',
+      down: '<path d="M12 4v11M7 11l5 5 5-5"/><path d="M4 20h16"/>',
+      print: '<path d="M7 9V3h10v6"/><rect x="3" y="9" width="18" height="8" rx="2"/><path d="M7 14h10v7H7z"/>',
+      logout: '<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5M21 12H9"/>',
+      sheet: '<rect x="3" y="3" width="18" height="18" rx="3"/><path d="M3 9h18M3 15h18M9 3v18"/>',
+      check: '<path d="M5 12.5l4.5 4.5L19 7.5"/>',
+      copy: '<rect x="9" y="9" width="11" height="11" rx="2.5"/><path d="M5 15V6a2 2 0 0 1 2-2h9"/>',
+      x: '<path d="M6 6l12 12M18 6L6 18"/>',
+      menu: '<path d="M4 7h16M4 12h16M4 17h10"/>',
+      edit: '<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/>',
+      trash: '<path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3"/>',
+      eye: '<path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',
+      alert: '<path d="M12 8v5M12 16.5v.01"/><circle cx="12" cy="12" r="9"/>',
+      wave: '<path d="M2 7c2.5-3 5-3 7.5 0s5 3 7.5 0 3-2 5-1"/><path d="M2 13c2.5-3 5-3 7.5 0s5 3 7.5 0 3-2 5-1"/><path d="M2 19c2.5-3 5-3 7.5 0s5 3 7.5 0 3-2 5-1"/>'
+    };
+    const ic = (n, cls = 'w-5 h-5') => `<svg class="${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${IC[n]}</svg>`;
+
+    // ====== PUSTAKA UI ======
+    const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]));
+    const $ = id => document.getElementById(id);
+    const CHEV = '<svg class="cs-chev" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 7.5l5 5 5-5"/></svg>';
+    const _selects = [];
+    function closeAllSelects(except) { _selects.forEach(s => { if (s !== except) s.close(); }); }
+
+    function makeSelect(root, cfg = {}) {
+      const norm = a => a.map(o => typeof o === 'object' ? o : { value: o, label: o });
+      let options = norm(cfg.options || []);
+      let value = cfg.value || '';
+      const placeholder = cfg.placeholder || 'Pilih…';
+      root.classList.add('cs');
+      root.innerHTML = `<button type="button" class="cs-btn"><span class="cs-label truncate"></span>${CHEV}</button>`;
+      const btn = root.querySelector('.cs-btn'), label = root.querySelector('.cs-label');
+      const pop = document.createElement('div');
+      pop.className = 'cs-pop';
+      pop.innerHTML = (cfg.searchable ? '<input type="text" class="cs-search" placeholder="Cari…" autocomplete="off">' : '') + '<ul class="cs-list"></ul>';
+      document.body.appendChild(pop);
+      const list = pop.querySelector('.cs-list'), search = pop.querySelector('.cs-search');
+      function paintLabel() {
+        const f = options.find(o => o.value === value);
+        label.textContent = f ? f.label : placeholder;
+        label.classList.toggle('ph', !f);
+      }
+      function paintList(filter = '') {
+        const q = filter.toLowerCase();
+        const items = options.filter(o => o.label.toLowerCase().includes(q));
+        list.innerHTML = items.length ? items.map(o =>
+          `<li class="cs-item ${o.value === value ? 'sel' : ''}" data-v="${esc(o.value)}"><span>${esc(o.label)}</span>${o.value === value ? ic('check', 'w-3.5 h-3.5') : ''}</li>`
+        ).join('') : '<li class="cs-empty">Tidak ditemukan</li>';
+      }
+      function open() {
+        closeAllSelects(api);
+        if (search) search.value = '';
+        paintList('');
+        const r = btn.getBoundingClientRect();
+        const w = Math.max(r.width, 190);
+        pop.style.width = w + 'px';
+        pop.style.left = Math.min(r.left, innerWidth - w - 8) + 'px';
+        const need = Math.min(250, options.length * 38 + 16) + (search ? 50 : 0);
+        const below = innerHeight - r.bottom;
+        if (below < need && r.top > below) {
+          pop.style.top = 'auto'; pop.style.bottom = (innerHeight - r.top + 6) + 'px';
+          list.style.maxHeight = Math.max(120, Math.min(240, r.top - 90)) + 'px';
+        } else {
+          pop.style.bottom = 'auto'; pop.style.top = (r.bottom + 6) + 'px';
+          list.style.maxHeight = Math.max(120, Math.min(240, below - 90)) + 'px';
+        }
+        pop.classList.add('show'); root.classList.add('cs-open');
+        if (search) setTimeout(() => search.focus(), 0);
+      }
+      function close() { pop.classList.remove('show'); root.classList.remove('cs-open'); }
+      const api = {
+        get value() { return value; },
+        set(v) { value = v || ''; paintLabel(); },
+        setOptions(o) { options = norm(o); if (!options.some(x => x.value === value)) value = ''; paintLabel(); },
+        open, close, el: root
+      };
+      btn.addEventListener('click', () => pop.classList.contains('show') ? close() : open());
+      list.addEventListener('click', e => {
+        const li = e.target.closest('.cs-item'); if (!li) return;
+        value = li.dataset.v; paintLabel(); close();
+        if (cfg.onChange) cfg.onChange(value);
+      });
+      if (search) search.addEventListener('input', () => paintList(search.value));
+      paintLabel();
+      _selects.push(api);
+      return api;
+    }
+    document.addEventListener('mousedown', e => { if (!e.target.closest('.cs-pop') && !e.target.closest('.cs')) closeAllSelects(); });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeAllSelects(); });
+    window.addEventListener('resize', () => closeAllSelects());
+    document.addEventListener('scroll', e => { if (!(e.target.nodeType === 1 && e.target.closest('.cs-pop'))) closeAllSelects(); }, true);
+
+    const BULAN = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+    const BULAN_S = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+    function makeDate(root, cfg = {}) {
+      const now = new Date();
+      const yFrom = cfg.yearFrom ?? now.getFullYear() - 1, yTo = cfg.yearTo ?? now.getFullYear() + 1;
+      root.style.display = 'grid'; root.style.gridTemplateColumns = '.85fr 1.5fr 1fr'; root.style.gap = '.5rem';
+      root.innerHTML = '<div></div><div></div><div></div>';
+      const [dEl, mEl, yEl] = root.children;
+      const years = []; for (let y = yTo; y >= yFrom; y--) years.push(String(y));
+      const dayOpts = n => Array.from({ length: n }, (_, i) => ({ value: String(i + 1).padStart(2, '0'), label: String(i + 1) }));
+      const change = () => { fixDays(); if (cfg.onChange) cfg.onChange(api.value); };
+      const d = makeSelect(dEl, { placeholder: 'Tgl', options: dayOpts(31), onChange: change });
+      const m = makeSelect(mEl, { placeholder: 'Bulan', options: BULAN.map((b, i) => ({ value: String(i + 1).padStart(2, '0'), label: b })), onChange: change });
+      const y = makeSelect(yEl, { placeholder: 'Tahun', options: years, onChange: change });
+      function fixDays() { const mo = +m.value, ye = +y.value || 2000; d.setOptions(dayOpts(mo ? new Date(ye, mo, 0).getDate() : 31)); }
+      const api = {
+        get value() { return d.value && m.value && y.value ? `${y.value}-${m.value}-${d.value}` : ''; },
+        set(iso) {
+          const mt = String(iso || '').match(/^(\d{4})-(\d{2})-(\d{2})/);
+          if (!mt) { d.set(''); m.set(''); y.set(''); fixDays(); return; }
+          if (!years.includes(mt[1])) { years.push(mt[1]); years.sort((a, b) => b - a); y.setOptions(years); }
+          y.set(mt[1]); m.set(mt[2]); fixDays(); d.set(mt[3]);
+        }
+      };
+      return api;
+    }
+
+    function toast(msg, type = 'ok') {
+      let box = $('toastBox');
+      if (!box) { box = document.createElement('div'); box.id = 'toastBox'; box.className = 'toast-box'; document.body.appendChild(box); }
+      const t = document.createElement('div');
+      t.className = 'toast ' + type;
+      const col = type === 'err' ? '#f43f5e' : type === 'ok' ? '#10b981' : '#0284c7';
+      t.innerHTML = `<span style="color:${col};flex:none;margin-top:1px">${ic(type === 'err' ? 'alert' : 'check', 'w-5 h-5')}</span><span>${esc(msg)}</span>`;
+      box.appendChild(t);
+      setTimeout(() => { t.classList.add('out'); setTimeout(() => t.remove(), 260); }, 3800);
+    }
+
+    function askConfirm({ title, message, confirmText = 'Ya, lanjutkan' }) {
+      return new Promise(resolve => {
+        const ov = document.createElement('div');
+        ov.className = 'fixed inset-0 z-[500] bg-slate-900/50 flex items-center justify-center p-4';
+        ov.innerHTML = `
+          <div class="bg-white rounded-2xl w-full max-w-sm p-6 pop-in">
+            <div class="w-12 h-12 rounded-xl bg-rose-100 text-rose-600 flex items-center justify-center">${ic('trash', 'w-6 h-6')}</div>
+            <h3 class="mt-4 font-extrabold text-lg">${esc(title)}</h3>
+            <p class="mt-1.5 text-sm text-slate-500">${esc(message)}</p>
+            <div class="mt-6 flex justify-end gap-2">
+              <button data-r="0" class="btn btn-ghost">Batal</button>
+              <button data-r="1" class="btn" style="background:#e11d48;color:#fff;padding:.55rem 1.1rem">${esc(confirmText)}</button>
+            </div>
+          </div>`;
+        ov.addEventListener('click', e => {
+          const b = e.target.closest('[data-r]');
+          if (b || e.target === ov) { ov.remove(); resolve(b ? b.dataset.r === '1' : false); }
+        });
+        document.body.appendChild(ov);
+      });
+    }
+
+    // ====== HELPER DATA ======
+    const norm = r => {
+      const o = { ...r };
+      ['timestamp', 'nama', 'kelas', 'tempatLahir', 'tanggalLahir', 'namaOrtu', 'pekerjaanOrtu', 'alamat', 'alasan', 'tglSuratKeluar', 'buktiSurat', 'progresDapodik', 'tglKeluarDapodik']
+        .forEach(k => { o[k] = r[k] == null ? '' : String(r[k]); });
+      o.rowNumber = Number(r.rowNumber);
+      return o;
+    };
+    const isDone = r => r.progresDapodik.toUpperCase() === 'DONE';
+
+    function parseDate(s) {
+      if (!s) return null;
+      s = String(s).trim();
+      let m = s.match(/^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{4})(?:[ T,]+(\d{1,2})[:.](\d{2}))?/);
+      if (m) return new Date(+m[3], +m[2] - 1, +m[1], +(m[4] || 0), +(m[5] || 0));
+      m = s.match(/^(\d{4})-(\d{2})-(\d{2})(?:[T ](\d{2}):(\d{2}))?/);
+      if (m) return new Date(+m[1], +m[2] - 1, +m[3], +(m[4] || 0), +(m[5] || 0));
+      const d = new Date(s); return isNaN(d) ? null : d;
+    }
+    const pad = n => String(n).padStart(2, '0');
+    const toIso = s => { const d = parseDate(s); return d ? `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}` : ''; };
+    const todayIso = () => { const d = new Date(); return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`; };
+    const fmtLong = d => `${d.getDate()} ${BULAN[d.getMonth()]} ${d.getFullYear()}`;
+    const ageDays = r => { const d = parseDate(r.timestamp); return d ? Math.max(0, Math.floor((Date.now() - d.getTime()) / 86400000)) : 0; };
+    const monthKey = d => d ? `${d.getFullYear()}-${pad(d.getMonth() + 1)}` : '';
+
+    function tingkatOf(kelas) {
+      const k = kelas.trim().toUpperCase();
+      if (k.startsWith('XII') || k.startsWith('12')) return 'XII';
+      if (k.startsWith('XI') || k.startsWith('11')) return 'XI';
+      if (k.startsWith('X') || k.startsWith('10')) return 'X';
+      return '-';
+    }
+    function groupAlasan(a) {
+      a = a.toUpperCase();
+      if (a.includes('MENGUNDURKAN')) return 'mundur';
+      if (a.includes('MUTASI')) return 'mutasi';
+      if (a.includes('WAFAT')) return 'wafat';
+      return 'lain';
+    }
+    const alasanLabel = v => (ALASAN.find(a => a.value === (v || '').toUpperCase()) || {}).label || v || '-';
+    const initials = n => n.trim().split(/\s+/).slice(0, 2).map(w => w[0] || '').join('').toUpperCase() || '?';
+
+    function kelasOptions(extra) {
+      const l = [];
+      ['X', 'XI', 'XII'].forEach(t => ['DPB', 'RPL', 'TITL', 'TKJ 1', 'TKJ 2', 'TKR 1', 'TKR 2', 'TKR 3', 'TPK 1', 'TPK 2', 'TPm 1', 'TPm 2'].forEach(j => l.push(`${t} ${j}`)));
+      if (extra && !l.includes(extra)) l.unshift(extra);
+      l.push({ value: '__lain', label: 'Kelas lainnya (ketik manual)' });
+      return l;
+    }
+
+    function copyText(text, msg = 'Tersalin ke clipboard') {
+      const done = () => toast(msg);
+      if (navigator.clipboard && window.isSecureContext) { navigator.clipboard.writeText(text).then(done).catch(() => fallback()); }
+      else fallback();
+      function fallback() {
+        const ta = document.createElement('textarea'); ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+        document.body.appendChild(ta); ta.select();
+        try { document.execCommand('copy'); done(); } catch (e) { toast('Gagal menyalin', 'err'); }
+        ta.remove();
+      }
+    }
+    const copyFrom = el => copyText(el.dataset.copy, 'Disalin: ' + (el.dataset.label || 'data'));
+
+    async function postApi(payload) {
+      const res = await fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload) });
+      return await res.json();
+    }
+
+    // ====== STATE ======
+    let allRecords = [];
+    let adminPass = sessionStorage.getItem('dapodik_admin_pass') || '';
+    let currentMenu = sessionStorage.getItem('dapodik_menu') || 'dashboard';
+    let flt = { q: '', prog: 'ALL', alasan: 'ALL', tingkat: 'ALL', sort: 'new' };
+    let page = 1, pageSize = 10;
+    let selected = new Set();
+    let openedRow = null;
+    let doneTargets = [];
+    let ctl = null;
+    let pollTimer = null;
+
+    const byRow = n => allRecords.find(r => r.rowNumber === n);
+
+    // ====== ANIMASI ======
+    let animTimer = null;
+    function animPulse(ms = 1400) {
+      document.body.classList.add('anim-on');
+      clearTimeout(animTimer); animTimer = setTimeout(() => document.body.classList.remove('anim-on'), ms);
+    }
+    function runCounters(root) {
+      if (!root || !document.body.classList.contains('anim-on')) return;
+      root.querySelectorAll('[data-count]').forEach(el => {
+        const to = +el.dataset.count || 0; if (!to) return;
+        const t0 = performance.now(), dur = 900;
+        (function f(t) { const p = Math.min(1, (t - t0) / dur); el.textContent = Math.round(to * (1 - Math.pow(1 - p, 3))); if (p < 1) requestAnimationFrame(f); })(t0);
+      });
+    }
+    const greet = () => { const h = new Date().getHours(); return h < 11 ? 'Selamat pagi' : h < 15 ? 'Selamat siang' : h < 18 ? 'Selamat sore' : 'Selamat malam'; };
+    (function () {
+      const box = $('bubbles');
+      for (let i = 0; i < 22; i++) {
+        const b = document.createElement('span'), s = 8 + Math.random() * 30;
+        b.className = 'bubble';
+        b.style.cssText = `left:${Math.random() * 100}%;width:${s}px;height:${s}px;animation-duration:${9 + Math.random() * 14}s;animation-delay:${-Math.random() * 20}s`;
+        box.appendChild(b);
+      }
+    })();
+
+    // ====== INIT ======
+    document.addEventListener('DOMContentLoaded', () => {
+      $('loginLogo').innerHTML = ic('wave', 'w-7 h-7');
+      $('sideLogo').innerHTML = ic('wave', 'w-6 h-6');
+      $('passToggle').innerHTML = ic('eye', 'w-5 h-5');
+      $('icSheet').innerHTML = ic('sheet'); $('icLogout').innerHTML = ic('logout');
+      $('icSync').innerHTML = ic('sync', 'w-4 h-4'); $('icDown').innerHTML = ic('down', 'w-4 h-4');
+      $('btnMenu').innerHTML = ic('menu'); $('icSearch').innerHTML = ic('search', 'w-4 h-4');
+      $('icCloseEdit').innerHTML = ic('x'); $('icDoneModal').innerHTML = ic('check', 'w-6 h-6');
+      if (adminPass) enterApp();
+    });
+
+    function initControls() {
+      if (ctl) return;
+      const yr = new Date().getFullYear();
+      ctl = {
+        fAlasan: makeSelect($('selAlasan'), { options: [{ value: 'ALL', label: 'Semua alasan' }, ...ALASAN], value: 'ALL', onChange: v => { flt.alasan = v; page = 1; renderTable(); } }),
+        fTingkat: makeSelect($('selTingkat'), { options: [{ value: 'ALL', label: 'Semua tingkat' }, { value: 'X', label: 'Kelas X' }, { value: 'XI', label: 'Kelas XI' }, { value: 'XII', label: 'Kelas XII' }], value: 'ALL', onChange: v => { flt.tingkat = v; page = 1; renderTable(); } }),
+        fSort: makeSelect($('selSort'), { options: [{ value: 'new', label: 'Terbaru dulu' }, { value: 'old', label: 'Terlama dulu' }, { value: 'nama', label: 'Nama A–Z' }, { value: 'kelas', label: 'Kelas' }], value: 'new', onChange: v => { flt.sort = v; renderTable(); } }),
+        eKelas: makeSelect($('eKelas'), { searchable: true, placeholder: 'Pilih kelas', options: kelasOptions(), onChange: v => $('eKelasLain').classList.toggle('hidden', v !== '__lain') }),
+        eTglLahir: makeDate($('eTglLahir'), { yearFrom: yr - 30, yearTo: yr - 9 }),
+        ePekerjaan: makeSelect($('ePekerjaan'), { placeholder: 'Pilih pekerjaan', options: PEKERJAAN }),
+        eAlasan: makeSelect($('eAlasan'), { placeholder: 'Pilih alasan', options: ALASAN }),
+        eTglSurat: makeDate($('eTglSurat'), { yearFrom: yr - 3, yearTo: yr + 1 }),
+        eProgres: makeSelect($('eProgres'), { options: [{ value: 'PROSES', label: 'PROSES (belum DONE)' }, { value: 'DONE', label: 'DONE (selesai Dapodik)' }] }),
+        eTglDapodik: makeDate($('eTglDapodik'), { yearFrom: yr - 3, yearTo: yr + 1 }),
+        fPer: makeSelect($('selPer'), { options: [10, 25, 50].map(n => ({ value: String(n), label: n + ' / halaman' })), value: '10', onChange: v => { pageSize = +v; page = 1; renderTable(); } }),
+        dDate: makeDate($('dDate'), { yearFrom: yr - 2, yearTo: yr + 1 })
+      };
+      $('searchInput').addEventListener('input', e => { flt.q = e.target.value.toLowerCase(); page = 1; renderTable(); });
+    }
+
+    // ====== AUTH ======
+    function togglePass() { const i = $('loginPass'); i.type = i.type === 'password' ? 'text' : 'password'; }
+    async function handleLogin(e) {
+      e.preventDefault();
+      const pass = $('loginPass').value, btn = $('btnLogin');
+      btn.disabled = true; btn.textContent = 'Memverifikasi…';
+      try {
+        const res = await fetch(`${API_URL}?action=verify&password=${encodeURIComponent(pass)}`);
+        const data = await res.json();
+        if (data.success && data.valid) { adminPass = pass; sessionStorage.setItem('dapodik_admin_pass', pass); enterApp(); }
+        else toast('Password admin salah.', 'err');
+      } catch (err) { toast('Gagal terhubung ke server: ' + err.message, 'err'); }
+      finally { btn.disabled = false; btn.textContent = 'Masuk'; }
+    }
+    function enterApp() {
+      animPulse(2600);
+      $('loginScreen').classList.add('hidden');
+      $('app').classList.remove('hidden');
+      initControls();
+      renderNav();
+      switchMenu(MENUS.some(m => m.key === currentMenu) ? currentMenu : 'dashboard');
+      loadData();
+      clearInterval(pollTimer);
+      pollTimer = setInterval(() => { if (!document.hidden && adminPass) loadData(true); }, 120000);
+    }
+    function logout() {
+      adminPass = ''; allRecords = []; selected.clear(); clearInterval(pollTimer);
+      sessionStorage.removeItem('dapodik_admin_pass');
+      $('loginPass').value = '';
+      closeDetail();
+      $('app').classList.add('hidden'); $('loginScreen').classList.remove('hidden');
+    }
+
+    // ====== NAV ======
+    function toggleSidebar(open) {
+      $('sidebar').classList.toggle('-translate-x-full', !open);
+      $('scrim').classList.toggle('hidden', !open);
+    }
+    function renderNav() {
+      const pending = allRecords.filter(r => !isDone(r)).length;
+      $('nav').innerHTML = MENUS.map(m => {
+        const badge = m.badge && pending > 0 ? `<span class="ml-auto min-w-[22px] text-center px-1.5 py-0.5 rounded-full text-[11px] font-extrabold bg-amber-400 text-slate-900">${pending}</span>` : '';
+        return `<button onclick="switchMenu('${m.key}')" class="nav-btn ${m.key === currentMenu ? 'active' : ''}">${ic(m.icon)}<span>${m.label}</span>${badge}</button>`;
+      }).join('');
+    }
+    function switchMenu(key) {
+      currentMenu = key; sessionStorage.setItem('dapodik_menu', key);
+      document.querySelectorAll('.sec').forEach(s => s.classList.add('hidden'));
+      $('sec-' + key).classList.remove('hidden');
+      const m = MENUS.find(x => x.key === key);
+      $('pageTitle').textContent = m.label; $('pageSubtitle').textContent = m.sub;
+      animPulse(1400);
+      renderNav(); toggleSidebar(false); window.scrollTo({ top: 0 });
+      runCounters($('sec-' + key));
+    }
+
+    // ====== LOAD ======
+    async function loadData(silent = false) {
+      const ico = $('icSync').firstElementChild;
+      if (ico) ico.classList.add('spin');
+      try {
+        const res = await fetch(`${API_URL}?action=getAll&password=${encodeURIComponent(adminPass)}`);
+        const data = await res.json();
+        if (data.success) {
+          allRecords = (data.records || []).map(norm);
+          selected = new Set([...selected].filter(n => { const r = byRow(n); return r && !isDone(r); }));
+          renderAll();
+          $('syncInfo').textContent = 'Disinkronkan ' + new Date().toTimeString().slice(0, 5);
+          if (!silent) toast('Data berhasil disinkronkan');
+        } else if (!silent) toast(data.message || 'Gagal memuat data.', 'err');
+      } catch (err) { if (!silent) toast('Error koneksi: ' + err.message, 'err'); }
+      finally { if (ico) ico.classList.remove('spin'); }
+    }
+    function renderAll() {
+      renderNav(); renderDashboard(); renderQueue(); renderTable(); renderHistory(); renderRekap();
+      runCounters($('sec-' + currentMenu));
+      if (openedRow && byRow(openedRow)) openDetail(openedRow, true);
+      else if (openedRow) closeDetail();
+    }
+
+    // ====== KOMPONEN KECIL ======
+    const statusBadge = r => isDone(r) ? '<span class="pill ok">DONE</span>' : '<span class="pill warn">MENUNGGU</span>';
+    const agingBadge = r => {
+      if (isDone(r)) return '';
+      const d = ageDays(r);
+      const cls = d > 7 ? 'danger' : d > 3 ? 'warn' : 'mute';
+      return `<span class="tag ${cls}">${d === 0 ? 'Masuk hari ini' : d + ' hari menunggu'}</span>`;
+    };
+    const avatar = (r, size = 'w-10 h-10 text-sm') => `<div class="${size} avatar">${esc(initials(r.nama))}</div>`;
+    const empty = (icon, title, sub) => `<div class="p-10 text-center"><div class="w-14 h-14 rounded-2xl bg-sky-50 text-sky-400 mx-auto flex items-center justify-center">${ic(icon, 'w-7 h-7')}</div><div class="mt-3 font-extrabold text-slate-800">${title}</div><div class="text-xs text-slate-500 mt-1">${sub}</div></div>`;
+    const kpi = (label, value, color, icon, go) => `
+      <button onclick="${go}" class="card p-4 text-left hover:shadow-md hover:-translate-y-0.5 transition">
+        <div class="kpi-ic w-9 h-9 rounded-lg flex items-center justify-center ${color}">${ic(icon, 'w-[18px] h-[18px]')}</div>
+        <div class="mt-3 text-3xl font-extrabold" data-count="${value}">${value}</div>
+        <div class="text-xs font-semibold text-slate-500 mt-0.5">${label}</div>
+      </button>`;
+    const distBar = (label, count, total) => {
+      const w = total ? Math.round(count / total * 100) : 0;
+      return `<div><div class="flex justify-between text-xs mb-1.5"><span class="font-bold text-slate-700">${label}</span><span class="text-slate-500 font-semibold">${count} &middot; ${w}%</span></div><div class="track"><div class="fill" style="width:${w}%"></div></div></div>`;
+    };
+
+    // ====== DASHBOARD ======
+    function renderDashboard() {
+      const total = allRecords.length;
+      const done = allRecords.filter(isDone).length, proses = total - done;
+      const telat = allRecords.filter(r => !isDone(r) && ageDays(r) > 7).length;
+      const pct = total ? Math.round(done / total * 100) : 0;
+      const g = { mundur: 0, mutasi: 0, wafat: 0, lain: 0 };
+      allRecords.forEach(r => { g[groupAlasan(r.alasan)]++; });
+      const pending = allRecords.filter(r => !isDone(r)).sort((a, b) => a.rowNumber - b.rowNumber).slice(0, 6);
+
+      $('sec-dashboard').innerHTML = `
+        <div class="banner">
+          <div class="bsun"></div>
+          <div class="relative z-10 min-w-0">
+            <div class="text-xs font-bold opacity-90">${greet()}, Operator</div>
+            <div class="text-xl sm:text-2xl font-extrabold mt-1">Arsip siswa keluar, laut tenang 🌊</div>
+            <div class="text-sm opacity-90 mt-1">${proses ? `${proses} berkas menunggu di antrean Dapodik${telat ? `, ${telat} sudah lewat 7 hari` : ''}.` : 'Antrean bersih. Semua berkas sudah berstatus DONE.'}</div>
+          </div>
+          <div class="boat"><span>⛵</span></div>
+          <div class="hw"><div class="wl a"></div><div class="wl b"></div><div class="wl c"></div></div>
+        </div>
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
+          ${kpi('Total pengajuan', total, 'bg-sky-100 text-sky-600', 'users', "switchMenu('data')")}
+          ${kpi('Menunggu Dapodik', proses, 'bg-amber-100 text-amber-600', 'clock', "switchMenu('antrean')")}
+          ${kpi('Selesai (DONE)', done, 'bg-emerald-100 text-emerald-600', 'check', "switchMenu('riwayat')")}
+          ${kpi('Menunggu > 7 hari', telat, 'bg-rose-100 text-rose-600', 'alert', "switchMenu('antrean')")}
+        </div>
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+          <div class="card overflow-hidden lg:col-span-2">
+            <div class="px-5 py-4 flex items-center justify-between border-b border-slate-100">
+              <div><h3 class="font-extrabold">Antrean Prioritas</h3><p class="text-xs text-slate-500">Pengajuan terlama yang belum DONE</p></div>
+              <button onclick="switchMenu('antrean')" class="text-xs font-bold text-sky-600 hover:underline">Lihat semua</button>
+            </div>
+            ${pending.length ? `<div class="divide-y divide-slate-100">${pending.map(r => `
+              <div class="px-5 py-3 flex items-center gap-3 hover:bg-slate-50 transition">
+                ${avatar(r)}
+                <button onclick="openDetail(${r.rowNumber})" class="min-w-0 flex-1 text-left"><div class="font-bold text-sm truncate">${esc(r.nama)}</div><div class="text-xs text-slate-500 truncate">${esc(r.kelas)} &middot; ${esc(alasanLabel(r.alasan))}</div></button>
+                <div class="hidden sm:block">${agingBadge(r)}</div>
+                <button onclick="openDone([${r.rowNumber}])" class="btn btn-green">${ic('check', 'w-4 h-4')}DONE</button>
+              </div>`).join('')}</div>` : empty('check', 'Antrean kosong', 'Semua pengajuan sudah berstatus DONE.')}
+          </div>
+          <div class="space-y-5">
+            <div class="card p-5">
+              <h3 class="font-extrabold">Progres Dapodik</h3>
+              <div class="mt-3 flex items-end justify-between"><span class="text-3xl font-extrabold">${pct}%</span><span class="text-xs text-slate-500 font-semibold">${done} dari ${total} selesai</span></div>
+              <div class="track mt-2"><div class="fill" style="width:${pct}%;background:#10b981"></div></div>
+            </div>
+            <div class="card p-5 space-y-4">
+              <h3 class="font-extrabold">Berdasarkan Alasan</h3>
+              ${distBar('Mengundurkan diri', g.mundur, total)}
+              ${distBar('Mutasi', g.mutasi, total)}
+              ${distBar('Wafat', g.wafat, total)}
+              ${distBar('Putus sekolah / lainnya', g.lain, total)}
+            </div>
+          </div>
+        </div>`;
+    }
+
+    // ====== ANTREAN ======
+    function toggleSel(n) { selected.has(n) ? selected.delete(n) : selected.add(n); renderQueue(); }
+    function selectAllQueue() {
+      const pend = allRecords.filter(r => !isDone(r));
+      if (selected.size === pend.length) selected.clear(); else pend.forEach(r => selected.add(r.rowNumber));
+      renderQueue();
+    }
+    function renderQueue() {
+      const pend = allRecords.filter(r => !isDone(r)).sort((a, b) => a.rowNumber - b.rowNumber);
+      $('antreanTop').innerHTML = `
+        <div class="card p-4 flex flex-wrap items-center gap-3">
+          <div class="flex items-center gap-3 flex-1 min-w-[220px]">
+            <button class="ck ${pend.length && selected.size === pend.length ? 'on' : ''}" onclick="selectAllQueue()" aria-label="Pilih semua">${ic('check', 'w-3.5 h-3.5')}</button>
+            <div><div class="text-sm font-extrabold">${pend.length} siswa menunggu</div><div class="text-xs text-slate-500">Diurutkan dari yang terlama. Klik isian pada kartu untuk menyalin.</div></div>
+          </div>
+          <button onclick="printBiodata([...selected])" class="btn btn-ghost" ${selected.size ? '' : 'disabled'}>${ic('print', 'w-4 h-4')}Cetak terpilih</button>
+          <button onclick="openDone([...selected])" class="btn btn-green" ${selected.size ? '' : 'disabled'}>${ic('check', 'w-4 h-4')}Tandai DONE (${selected.size})</button>
+        </div>`;
+      $('antreanList').innerHTML = pend.length ? pend.map(r => {
+        const row = (lbl, val) => `<button data-copy="${esc(val)}" data-label="${esc(lbl)}" onclick="copyFrom(this)" class="copyable w-full flex gap-3 text-left rounded-lg px-2 py-1.5 -mx-2"><span class="w-24 shrink-0 text-slate-400 font-semibold">${lbl}</span><span class="font-semibold text-slate-700 break-words min-w-0">${esc(val || '-')}</span></button>`;
+        return `
+        <div class="card p-5 flex flex-col gap-4 ${selected.has(r.rowNumber) ? 'ring-2 ring-sky-500' : ''}">
+          <div class="flex items-start gap-3">
+            <button class="ck mt-1 ${selected.has(r.rowNumber) ? 'on' : ''}" onclick="toggleSel(${r.rowNumber})" aria-label="Pilih">${ic('check', 'w-3.5 h-3.5')}</button>
+            ${avatar(r, 'w-11 h-11')}
+            <div class="min-w-0 flex-1"><div class="font-extrabold leading-tight">${esc(r.nama)}</div><div class="mt-1 flex flex-wrap items-center gap-1.5"><span class="px-2 py-0.5 rounded-md bg-sky-50 text-sky-700 text-[11px] font-extrabold">${esc(r.kelas)}</span>${agingBadge(r)}</div></div>
+            <span class="px-2.5 py-1 rounded-full text-[11px] font-extrabold bg-slate-100 text-slate-600 text-right">${esc(alasanLabel(r.alasan))}</span>
+          </div>
+          <div class="text-xs space-y-0.5 border-t border-slate-100 pt-3">
+            ${row('Nama', r.nama)}${row('TTL', `${r.tempatLahir}, ${r.tanggalLahir}`)}${row('Orang tua', r.namaOrtu)}${row('Pekerjaan', r.pekerjaanOrtu)}${row('Alamat', r.alamat)}${row('Tgl surat', r.tglSuratKeluar)}
+          </div>
+          <div class="flex flex-wrap items-center gap-2 mt-auto">
+            <button onclick="copyBiodata(${r.rowNumber})" class="btn btn-ghost">${ic('copy', 'w-4 h-4')}Salin</button>
+            <button onclick="printBiodata([${r.rowNumber}])" class="btn btn-ghost">${ic('print', 'w-4 h-4')}Cetak</button>
+            ${r.buktiSurat ? `<a href="${esc(r.buktiSurat)}" target="_blank" rel="noopener" class="btn btn-soft">${ic('file', 'w-4 h-4')}Bukti</a>` : '<span class="text-[11px] font-bold text-rose-500">Bukti belum ada</span>'}
+            <button onclick="openDone([${r.rowNumber}])" class="btn btn-green ml-auto">${ic('check', 'w-4 h-4')}Tandai DONE</button>
+          </div>
+        </div>`;
+      }).join('') : `<div class="card col-span-full">${empty('check', 'Tidak ada antrean Dapodik', 'Seluruh siswa keluar sudah berstatus DONE.')}</div>`;
+    }
+    function copyBiodata(n) {
+      const r = byRow(n); if (!r) return;
+      copyText(`Nama: ${r.nama}\nKelas: ${r.kelas}\nTTL: ${r.tempatLahir}, ${r.tanggalLahir}\nOrang Tua: ${r.namaOrtu}\nPekerjaan Ortu: ${r.pekerjaanOrtu}\nAlamat: ${r.alamat}\nAlasan Keluar: ${r.alasan}\nTanggal Surat Keluar: ${r.tglSuratKeluar || '-'}`, 'Biodata ' + r.nama + ' disalin');
+    }
+
+    // ====== TANDAI DONE ======
+    function openDone(rows) {
+      doneTargets = rows.map(byRow).filter(Boolean).filter(r => !isDone(r));
+      if (!doneTargets.length) return;
+      $('doneList').innerHTML = doneTargets.map(r => `<div class="px-4 py-2.5 flex justify-between gap-3"><b class="truncate">${esc(r.nama)}</b><span class="text-slate-500 shrink-0">${esc(r.kelas)}</span></div>`).join('');
+      ctl.dDate.set(todayIso());
+      const m = $('doneModal'); m.classList.remove('hidden'); m.classList.add('flex');
+    }
+    function closeDone() { const m = $('doneModal'); m.classList.add('hidden'); m.classList.remove('flex'); }
+    async function confirmDone() {
+      const date = ctl.dDate.value;
+      if (!date) { toast('Lengkapi tanggal keluar Dapodik.', 'err'); return; }
+      const btn = $('btnConfirmDone'); btn.disabled = true;
+      let ok = 0, fail = 0;
+      for (let i = 0; i < doneTargets.length; i++) {
+        const r = doneTargets[i];
+        btn.textContent = `Menyimpan ${i + 1}/${doneTargets.length}…`;
+        try {
+          const res = await postApi({
+            action: 'update', password: adminPass, rowNumber: r.rowNumber, nama: r.nama, kelas: r.kelas, tempatLahir: r.tempatLahir,
+            tanggalLahir: r.tanggalLahir, namaOrtu: r.namaOrtu, pekerjaanOrtu: r.pekerjaanOrtu, alamat: r.alamat, alasan: r.alasan,
+            tglSuratKeluar: r.tglSuratKeluar, progresDapodik: 'DONE', tglKeluarDapodik: date
+          });
+          res.success ? ok++ : fail++;
+        } catch (e) { fail++; }
+      }
+      btn.disabled = false; btn.textContent = 'Ya, Tandai DONE';
+      closeDone(); selected.clear();
+      toast(fail ? `${ok} berhasil, ${fail} gagal disimpan.` : `${ok} siswa ditandai DONE.`, fail ? 'err' : 'ok');
+      loadData(true);
+    }
+
+    // ====== DATA SISWA ======
+    function setProg(v) {
+      flt.prog = v; page = 1;
+      document.querySelectorAll('[data-prog]').forEach(b => b.classList.toggle('on', b.dataset.prog === v));
+      renderTable();
+    }
+    function renderTable() {
+      let rows = allRecords.filter(r => {
+        const q = flt.q;
+        const t = !q || [r.nama, r.kelas, r.namaOrtu, r.alamat, r.tempatLahir].some(x => x.toLowerCase().includes(q));
+        const p = flt.prog === 'ALL' || (flt.prog === 'DONE') === isDone(r);
+        const a = flt.alasan === 'ALL' || r.alasan.toUpperCase() === flt.alasan;
+        const k = flt.tingkat === 'ALL' || tingkatOf(r.kelas) === flt.tingkat;
+        return t && p && a && k;
+      });
+      const sorters = {
+        new: (a, b) => b.rowNumber - a.rowNumber, old: (a, b) => a.rowNumber - b.rowNumber,
+        nama: (a, b) => a.nama.localeCompare(b.nama), kelas: (a, b) => a.kelas.localeCompare(b.kelas) || a.nama.localeCompare(b.nama)
+      };
+      rows.sort(sorters[flt.sort]);
+      const total = rows.length, pages = Math.max(1, Math.ceil(total / pageSize));
+      if (page > pages) page = pages;
+      const start = (page - 1) * pageSize, shown = rows.slice(start, start + pageSize);
+      $('tableBody').innerHTML = shown.length ? shown.map(r => `
+        <tr class="hover:bg-slate-50 transition">
+          <td class="px-4 py-3"><button onclick="openDetail(${r.rowNumber})" class="flex items-center gap-3 text-left">${avatar(r, 'w-9 h-9 text-xs')}<div><div class="font-bold">${esc(r.nama)}</div><div class="text-xs text-sky-600 font-semibold">${esc(r.kelas)}</div></div></button></td>
+          <td class="px-4 py-3"><span class="px-2 py-1 rounded-md bg-slate-100 text-slate-700 text-xs font-bold whitespace-nowrap">${esc(alasanLabel(r.alasan))}</span></td>
+          <td class="px-4 py-3 text-xs text-slate-600 whitespace-nowrap">${r.tglSuratKeluar ? esc(r.tglSuratKeluar) : '<span class="text-rose-500 font-bold">Belum ada</span>'}</td>
+          <td class="px-4 py-3">${r.buktiSurat ? `<a href="${esc(r.buktiSurat)}" target="_blank" rel="noopener" class="btn btn-soft !py-1.5">${ic('file', 'w-3.5 h-3.5')}Lihat</a>` : '<span class="text-xs text-slate-400">-</span>'}</td>
+          <td class="px-4 py-3">${statusBadge(r)}</td>
+          <td class="px-4 py-3"><div class="flex justify-end gap-1.5">
+            ${!isDone(r) ? `<button onclick="openDone([${r.rowNumber}])" title="Tandai DONE" class="btn btn-green !px-2.5 !py-1.5">${ic('check', 'w-4 h-4')}</button>` : ''}
+            <button onclick="printBiodata([${r.rowNumber}])" title="Cetak biodata" class="btn btn-ghost !px-2.5 !py-1.5">${ic('print', 'w-4 h-4')}</button>
+            <button onclick="openDetail(${r.rowNumber})" title="Detail" class="btn btn-ghost !px-2.5 !py-1.5">${ic('eye', 'w-4 h-4')}</button>
+            <button onclick="openEdit(${r.rowNumber})" title="Edit" class="btn btn-soft !px-2.5 !py-1.5">${ic('edit', 'w-4 h-4')}</button>
+          </div></td>
+        </tr>`).join('') : `<tr><td colspan="6">${empty('search', 'Tidak ada data yang cocok', 'Coba ubah kata kunci atau filter.')}</td></tr>`;
+      $('tableCount').textContent = total ? `Menampilkan ${start + 1}–${start + shown.length} dari ${total} data` : 'Tidak ada data';
+      const nums = [], add = n => { if (!nums.includes(n) && n >= 1 && n <= pages) nums.push(n); };
+      add(1); for (let i = page - 1; i <= page + 1; i++) add(i); add(pages);
+      const btn = (l, n, on, dis) => `<button class="pg ${on ? 'on' : ''}" ${dis ? 'disabled' : `onclick="goPage(${n})"`}>${l}</button>`;
+      let html = btn('‹', page - 1, false, page <= 1), prev = 0;
+      nums.sort((a, b) => a - b).forEach(n => { if (n - prev > 1) html += '<span class="px-1 text-slate-400">…</span>'; html += btn(n, n, n === page, false); prev = n; });
+      $('pager').innerHTML = pages > 1 ? html + btn('›', page + 1, false, page >= pages) : '';
+    }
+    function goPage(n) { page = n; renderTable(); $('tableBody').closest('.card').scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+
+    // ====== DETAIL DRAWER ======
+    function openDetail(n, keepOpen) {
+      const r = byRow(n); if (!r) return;
+      openedRow = n;
+      const info = (lbl, val) => `<button data-copy="${esc(val)}" data-label="${esc(lbl)}" onclick="copyFrom(this)" class="copyable w-full text-left flex gap-3 px-3 py-2.5 rounded-xl"><span class="w-28 shrink-0 text-xs font-bold text-slate-400 uppercase pt-0.5">${lbl}</span><span class="text-sm font-semibold break-words min-w-0">${esc(val || '-')}</span></button>`;
+      const step = (done, title, sub) => `<div class="flex gap-3"><div class="flex flex-col items-center"><div class="w-6 h-6 rounded-full flex items-center justify-center ${done ? 'bg-emerald-500 text-white' : 'bg-slate-200 text-slate-400'}">${done ? ic('check', 'w-3.5 h-3.5') : ''}</div><div class="w-0.5 flex-1 bg-slate-200 my-1"></div></div><div class="pb-4"><div class="text-sm font-bold">${title}</div><div class="text-xs text-slate-500">${sub}</div></div></div>`;
+      $('drawerBody').innerHTML = `
+        <div class="relative p-6 text-white bg-gradient-to-br from-sky-600 to-cyan-500">
+          <button onclick="closeDetail()" class="absolute top-4 right-4 w-9 h-9 rounded-xl bg-white/15 hover:bg-white/25 flex items-center justify-center">${ic('x', 'w-5 h-5')}</button>
+          <div class="w-14 h-14 rounded-2xl bg-white/20 text-xl font-extrabold flex items-center justify-center">${esc(initials(r.nama))}</div>
+          <h3 class="mt-3 text-xl font-extrabold leading-tight">${esc(r.nama)}</h3>
+          <div class="mt-2 flex flex-wrap items-center gap-2"><span class="px-2.5 py-1 rounded-full bg-white/20 text-xs font-bold">${esc(r.kelas)}</span><span class="px-2.5 py-1 rounded-full bg-white/20 text-xs font-bold">${esc(alasanLabel(r.alasan))}</span></div>
+        </div>
+        <div class="p-4 space-y-5">
+          <div class="flex items-center justify-between px-1">${statusBadge(r)}${agingBadge(r)}</div>
+          <div>
+            <div class="px-3 pb-1 text-[11px] font-extrabold uppercase tracking-wider text-slate-400">Biodata &middot; klik untuk menyalin</div>
+            ${info('TTL', `${r.tempatLahir}, ${r.tanggalLahir}`)}${info('Orang tua', r.namaOrtu)}${info('Pekerjaan', r.pekerjaanOrtu)}${info('Alamat', r.alamat)}
+          </div>
+          <div class="px-3">
+            <div class="pb-2 text-[11px] font-extrabold uppercase tracking-wider text-slate-400">Alur proses</div>
+            ${step(true, 'Pengajuan masuk', esc(r.timestamp || '-'))}
+            ${step(!!r.tglSuratKeluar, 'Surat keluar', esc(r.tglSuratKeluar || 'Tanggal belum diisi'))}
+            ${step(isDone(r), 'Keluar di Dapodik', isDone(r) ? esc(r.tglKeluarDapodik || 'Selesai') : 'Menunggu operator')}
+          </div>
+          ${r.buktiSurat ? `<a href="${esc(r.buktiSurat)}" target="_blank" rel="noopener" class="btn btn-soft w-full !py-3">${ic('file', 'w-4 h-4')}Buka bukti surat</a>` : `<div class="rounded-xl bg-rose-50 text-rose-600 text-xs font-bold px-4 py-3">Bukti surat belum diunggah.</div>`}
+        </div>`;
+      $('drawerFoot').innerHTML = `
+        ${!isDone(r) ? `<button onclick="openDone([${r.rowNumber}])" class="btn btn-green flex-1">${ic('check', 'w-4 h-4')}Tandai DONE</button>` : ''}
+        <button onclick="copyBiodata(${r.rowNumber})" class="btn btn-ghost">${ic('copy', 'w-4 h-4')}Salin</button>
+        <button onclick="printBiodata([${r.rowNumber}])" class="btn btn-ghost">${ic('print', 'w-4 h-4')}Cetak</button>
+        <button onclick="openEdit(${r.rowNumber})" class="btn btn-soft">${ic('edit', 'w-4 h-4')}Edit</button>
+        <button onclick="confirmDelete(${r.rowNumber})" class="btn btn-red">${ic('trash', 'w-4 h-4')}</button>`;
+      if (!keepOpen) { $('drawerScrim').classList.remove('hidden'); requestAnimationFrame(() => $('drawer').classList.add('open')); }
+    }
+    function closeDetail() { openedRow = null; $('drawer').classList.remove('open'); $('drawerScrim').classList.add('hidden'); }
+
+    // ====== EDIT ======
+    function openEdit(n) {
+      const r = byRow(n); if (!r) return;
+      $('eRow').value = r.rowNumber;
+      $('eNama').value = r.nama; $('eTempat').value = r.tempatLahir; $('eOrtu').value = r.namaOrtu; $('eAlamat').value = r.alamat;
+      ctl.eKelas.setOptions(kelasOptions(r.kelas)); ctl.eKelas.set(r.kelas); $('eKelasLain').classList.add('hidden'); $('eKelasLain').value = '';
+      ctl.eTglLahir.set(toIso(r.tanggalLahir));
+      ctl.ePekerjaan.setOptions(r.pekerjaanOrtu && !PEKERJAAN.includes(r.pekerjaanOrtu) ? [r.pekerjaanOrtu, ...PEKERJAAN] : PEKERJAAN); ctl.ePekerjaan.set(r.pekerjaanOrtu);
+      ctl.eAlasan.set(r.alasan.toUpperCase());
+      ctl.eTglSurat.set(toIso(r.tglSuratKeluar));
+      ctl.eProgres.set(isDone(r) ? 'DONE' : 'PROSES');
+      ctl.eTglDapodik.set(toIso(r.tglKeluarDapodik));
+      const m = $('editModal'); m.classList.remove('hidden'); m.classList.add('flex');
+    }
+    function closeEdit() { const m = $('editModal'); m.classList.add('hidden'); m.classList.remove('flex'); }
+    async function saveEdit(e) {
+      e.preventDefault();
+      const kelas = ctl.eKelas.value === '__lain' ? $('eKelasLain').value.trim().toUpperCase() : ctl.eKelas.value;
+      if (!kelas) { toast('Kelas wajib diisi.', 'err'); return; }
+      if (ctl.eProgres.value === 'DONE' && !ctl.eTglDapodik.value) { toast('Isi tanggal keluar Dapodik untuk status DONE.', 'err'); return; }
+      const btn = $('btnSaveEdit'); btn.disabled = true; btn.textContent = 'Menyimpan…';
+      try {
+        const res = await postApi({
+          action: 'update', password: adminPass, rowNumber: $('eRow').value,
+          nama: $('eNama').value.trim(), kelas, tempatLahir: $('eTempat').value.trim(), tanggalLahir: ctl.eTglLahir.value,
+          namaOrtu: $('eOrtu').value.trim(), pekerjaanOrtu: ctl.ePekerjaan.value, alamat: $('eAlamat').value.trim(),
+          alasan: ctl.eAlasan.value, tglSuratKeluar: ctl.eTglSurat.value,
+          progresDapodik: ctl.eProgres.value, tglKeluarDapodik: ctl.eTglDapodik.value
+        });
+        if (res.success) { toast(res.message || 'Perubahan disimpan'); closeEdit(); loadData(true); }
+        else toast(res.message || 'Gagal menyimpan', 'err');
+      } catch (err) { toast('Gagal update: ' + err.message, 'err'); }
+      finally { btn.disabled = false; btn.textContent = 'Simpan Perubahan'; }
+    }
+    async function confirmDelete(n) {
+      const r = byRow(n); if (!r) return;
+      const ok = await askConfirm({ title: 'Hapus data siswa?', message: `Data "${r.nama}" akan dihapus permanen dari spreadsheet dan tidak bisa dikembalikan.`, confirmText: 'Ya, hapus' });
+      if (!ok) return;
+      try {
+        const res = await postApi({ action: 'delete', password: adminPass, rowNumber: n });
+        if (res.success) { toast(res.message || 'Data dihapus'); closeDetail(); loadData(true); }
+        else toast(res.message || 'Gagal menghapus', 'err');
+      } catch (err) { toast('Gagal menghapus: ' + err.message, 'err'); }
+    }
+
+    // ====== RIWAYAT ======
+    function renderHistory() {
+      const done = allRecords.filter(isDone);
+      const groups = {};
+      done.forEach(r => { const k = toIso(r.tglKeluarDapodik) || 'nodate'; (groups[k] = groups[k] || []).push(r); });
+      const keys = Object.keys(groups).sort().reverse();
+      $('sec-riwayat').innerHTML = keys.length ? keys.map(k => {
+        const label = k === 'nodate' ? 'Tanggal tidak tercatat' : fmtLong(parseDate(k));
+        return `
+        <div class="card overflow-hidden">
+          <div class="px-5 py-3 bg-slate-50 border-b border-slate-100 flex items-center justify-between"><div class="font-extrabold">${label}</div><span class="pill ok">${groups[k].length} siswa</span></div>
+          <div class="divide-y divide-slate-100">${groups[k].map(r => `
+            <button onclick="openDetail(${r.rowNumber})" class="w-full px-5 py-3 flex items-center gap-3 text-left hover:bg-slate-50 transition">${avatar(r, 'w-9 h-9 text-xs')}<div class="min-w-0 flex-1"><div class="font-bold text-sm truncate">${esc(r.nama)}</div><div class="text-xs text-slate-500">${esc(r.kelas)} &middot; ${esc(alasanLabel(r.alasan))}</div></div>${ic('eye', 'w-4 h-4 text-slate-300')}</button>`).join('')}
+          </div>
+        </div>`;
+      }).join('') : `<div class="card">${empty('history', 'Belum ada riwayat', 'Siswa yang ditandai DONE akan tercatat di sini per tanggal keluar Dapodik.')}</div>`;
+    }
+
+    // ====== REKAP ======
+    function tally(keyFn) {
+      const m = {};
+      allRecords.forEach(r => { const k = keyFn(r); if (!m[k]) m[k] = { done: 0, proses: 0 }; isDone(r) ? m[k].done++ : m[k].proses++; });
+      return m;
+    }
+    function rekapTable(map) {
+      const entries = Object.entries(map).sort((a, b) => a[0].localeCompare(b[0]));
+      const tot = entries.reduce((s, [, v]) => ({ d: s.d + v.done, p: s.p + v.proses }), { d: 0, p: 0 });
+      return `<table class="w-full text-sm"><thead class="bg-slate-50"><tr><th class="th">Kategori</th><th class="th text-center">DONE</th><th class="th text-center">Menunggu</th><th class="th text-right">Total</th></tr></thead><tbody class="divide-y divide-slate-100">
+        ${entries.map(([k, v]) => `<tr><td class="px-4 py-2.5 font-bold">${esc(k)}</td><td class="px-4 py-2.5 text-center font-bold text-emerald-600">${v.done}</td><td class="px-4 py-2.5 text-center font-bold text-amber-600">${v.proses}</td><td class="px-4 py-2.5 text-right font-extrabold">${v.done + v.proses}</td></tr>`).join('') || '<tr><td colspan="4" class="p-6 text-center text-xs text-slate-400">Belum ada data</td></tr>'}
+        ${entries.length ? `<tr class="bg-slate-50 font-extrabold"><td class="px-4 py-2.5">Jumlah</td><td class="px-4 py-2.5 text-center text-emerald-700">${tot.d}</td><td class="px-4 py-2.5 text-center text-amber-700">${tot.p}</td><td class="px-4 py-2.5 text-right">${tot.d + tot.p}</td></tr>` : ''}
+      </tbody></table>`;
+    }
+    function renderRekap() {
+      const perAlasan = tally(r => alasanLabel(r.alasan).toUpperCase());
+      const perKelas = tally(r => (r.kelas || '-').toUpperCase());
+      const perTingkat = tally(r => { const t = tingkatOf(r.kelas); return t === '-' ? 'Tidak terbaca' : 'Kelas ' + t; });
+      const perBulan = {};
+      allRecords.forEach(r => {
+        const d = parseDate(r.timestamp);
+        if (d) { const k = monthKey(d); (perBulan[k] = perBulan[k] || { masuk: 0, selesai: 0 }).masuk++; }
+        if (isDone(r)) { const d2 = parseDate(r.tglKeluarDapodik); if (d2) { const k = monthKey(d2); (perBulan[k] = perBulan[k] || { masuk: 0, selesai: 0 }).selesai++; } }
+      });
+      const bulanRows = Object.entries(perBulan).sort().reverse().map(([k, v]) => { const [y, m] = k.split('-'); return `<tr><td class="px-4 py-2.5 font-bold">${BULAN[+m - 1]} ${y}</td><td class="px-4 py-2.5 text-center font-bold text-sky-600">${v.masuk}</td><td class="px-4 py-2.5 text-center font-bold text-emerald-600">${v.selesai}</td></tr>`; }).join('');
+
+      $('sec-rekap').innerHTML = `
+        <div class="card p-5 flex flex-wrap items-center justify-between gap-4">
+          <div><h3 class="font-extrabold">Unduh &amp; Cetak</h3><p class="text-xs text-slate-500">File Excel (.xlsx) berisi seluruh kolom spreadsheet.</p></div>
+          <div class="flex flex-wrap gap-2">
+            <button onclick="exportExcel('ALL')" class="btn btn-green">${ic('down', 'w-4 h-4')}Semua data</button>
+            <button onclick="exportExcel('DONE')" class="btn btn-primary">${ic('down', 'w-4 h-4')}Hanya DONE</button>
+            <button onclick="exportExcel('PROSES')" class="btn btn-amber">${ic('down', 'w-4 h-4')}Belum DONE</button>
+            <button onclick="printReport()" class="btn btn-ghost">${ic('print', 'w-4 h-4')}Cetak laporan</button>
+          </div>
+        </div>
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+          <div class="card overflow-hidden"><div class="px-5 py-3.5 border-b border-slate-100 font-extrabold">Per Alasan Keluar</div>${rekapTable(perAlasan)}</div>
+          <div class="card overflow-hidden"><div class="px-5 py-3.5 border-b border-slate-100 font-extrabold">Per Tingkat</div>${rekapTable(perTingkat)}</div>
+          <div class="card overflow-hidden"><div class="px-5 py-3.5 border-b border-slate-100 font-extrabold">Per Kelas</div><div class="max-h-96 overflow-y-auto">${rekapTable(perKelas)}</div></div>
+          <div class="card overflow-hidden"><div class="px-5 py-3.5 border-b border-slate-100 font-extrabold">Per Bulan</div><div class="max-h-96 overflow-y-auto"><table class="w-full text-sm"><thead class="bg-slate-50"><tr><th class="th">Bulan</th><th class="th text-center">Masuk</th><th class="th text-center">Selesai Dapodik</th></tr></thead><tbody class="divide-y divide-slate-100">${bulanRows || '<tr><td colspan="3" class="p-6 text-center text-xs text-slate-400">Belum ada data</td></tr>'}</tbody></table></div></div>
+        </div>`;
+    }
+
+    // ====== EXPORT & CETAK ======
+    function exportExcel(mode = 'ALL') {
+      if (typeof XLSX === 'undefined') { toast('Library Excel belum siap, periksa koneksi internet.', 'err'); return; }
+      let ds = allRecords;
+      if (mode === 'DONE') ds = allRecords.filter(isDone);
+      if (mode === 'PROSES') ds = allRecords.filter(r => !isDone(r));
+      if (!ds.length) { toast('Tidak ada data pada kategori tersebut.', 'err'); return; }
+      const headers = ['No', 'Timestamp', 'NAMA SISWA', 'KELAS', 'TEMPAT LAHIR', 'TANGGAL LAHIR', 'NAMA ORANG TUA', 'PEKERJAAN ORTU', 'ALAMAT', 'ALASAN', 'TANGGAL SURAT KELUAR', 'BUKTI SURAT KELUAR', 'PROGRES KELUAR DAPODIK', 'TANGGAL KELUAR DAPODIK'];
+      const rows = ds.map((r, i) => [i + 1, r.timestamp, r.nama, r.kelas, r.tempatLahir, r.tanggalLahir, r.namaOrtu, r.pekerjaanOrtu, r.alamat, r.alasan, r.tglSuratKeluar, r.buktiSurat, r.progresDapodik, r.tglKeluarDapodik]);
+      const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
+      ws['!cols'] = [5, 20, 28, 14, 16, 15, 24, 20, 35, 22, 18, 42, 22, 20].map(w => ({ wch: w }));
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'SISWA KELUAR');
+      XLSX.writeFile(wb, `Rekap_Siswa_Keluar_${mode}_${todayIso()}.xlsx`);
+      toast('File Excel berhasil diunduh');
+    }
+    // Cetak lembar biodata per siswa (1 siswa = 1 halaman)
+    function printBiodata(rows) {
+      const list = rows.map(byRow).filter(Boolean);
+      if (!list.length) { toast('Pilih minimal satu siswa untuk dicetak.', 'err'); return; }
+      const td1 = 'padding:5px 6px;width:190px;vertical-align:top;', td2 = 'padding:5px 6px;width:12px;vertical-align:top;', td3 = 'padding:5px 6px;vertical-align:top;';
+      const line = (l, v) => `<tr><td style="${td1}">${l}</td><td style="${td2}">:</td><td style="${td3}font-weight:bold;">${esc(v || '-')}</td></tr>`;
+      const sec = t => `<tr><td colspan="3" style="padding:12px 6px 4px;font-weight:bold;border-bottom:1px solid #000;">${t}</td></tr>`;
+      $('printArea').innerHTML = list.map((r, i) => `
+        <div style="font-family:Arial,sans-serif;font-size:13px;color:#000;${i < list.length - 1 ? 'page-break-after:always;' : ''}">
+          <div style="text-align:center;border-bottom:3px double #000;padding-bottom:10px;margin-bottom:16px;">
+            <div style="font-weight:bold;font-size:16px;">LEMBAR BIODATA SISWA KELUAR</div>
+            <div style="font-size:12px;">Dicetak pada ${fmtLong(new Date())}</div>
+          </div>
+          <table style="width:100%;border-collapse:collapse;">
+            ${sec('A. Identitas Siswa')}
+            ${line('Nama Lengkap', r.nama)}${line('Kelas', r.kelas)}${line('Tempat, Tanggal Lahir', `${r.tempatLahir}, ${r.tanggalLahir}`)}
+            ${sec('B. Orang Tua / Wali')}
+            ${line('Nama Orang Tua / Wali', r.namaOrtu)}${line('Pekerjaan', r.pekerjaanOrtu)}${line('Alamat', r.alamat)}
+            ${sec('C. Keterangan Keluar')}
+            ${line('Alasan Keluar', alasanLabel(r.alasan))}${line('Tanggal Surat Keluar', r.tglSuratKeluar)}${line('Tanggal Pengajuan', r.timestamp)}
+            ${line('Status Dapodik', isDone(r) ? 'DONE' : 'PROSES')}${line('Tanggal Keluar Dapodik', r.tglKeluarDapodik)}
+          </table>
+          <div style="display:flex;justify-content:space-between;margin-top:60px;padding:0 20px;">
+            <div style="text-align:center;width:210px;">Orang Tua / Wali<br><br><br><br><br>( ${esc(r.namaOrtu || '..................')} )</div>
+            <div style="text-align:center;width:210px;">Operator Dapodik<br><br><br><br><br>( .................................. )</div>
+          </div>
+        </div>`).join('');
+      window.print();
+    }
+
+    function printReport() {
+      const done = allRecords.filter(isDone).length;
+      const td = 'border:1px solid #000;padding:4px 6px;';
+      $('printArea').innerHTML = `
+        <div style="font-family:Arial,sans-serif;font-size:12px;">
+          <div style="text-align:center;margin-bottom:14px;"><div style="font-weight:bold;font-size:15px;">REKAPITULASI DATA SISWA KELUAR</div><div>Dicetak pada ${fmtLong(new Date())}</div></div>
+          <div style="margin-bottom:10px;">Total pengajuan: <b>${allRecords.length}</b> &nbsp;|&nbsp; Selesai di Dapodik: <b>${done}</b> &nbsp;|&nbsp; Menunggu: <b>${allRecords.length - done}</b></div>
+          <table style="width:100%;border-collapse:collapse;font-size:11px;">
+            <thead><tr style="background:#eee;">${['No', 'Nama Siswa', 'Kelas', 'Alasan Keluar', 'Tgl Surat', 'Status Dapodik', 'Tgl Keluar Dapodik'].map(h => `<th style="${td}">${h}</th>`).join('')}</tr></thead>
+            <tbody>${allRecords.map((r, i) => `<tr><td style="${td}text-align:center;">${i + 1}</td><td style="${td}">${esc(r.nama)}</td><td style="${td}">${esc(r.kelas)}</td><td style="${td}">${esc(r.alasan)}</td><td style="${td}text-align:center;">${esc(r.tglSuratKeluar || '-')}</td><td style="${td}text-align:center;">${isDone(r) ? 'DONE' : 'PROSES'}</td><td style="${td}text-align:center;">${esc(r.tglKeluarDapodik || '-')}</td></tr>`).join('')}</tbody>
+          </table>
+          <div style="display:flex;justify-content:space-between;margin-top:40px;padding:0 30px;">
+            <div style="text-align:center;width:220px;">Mengetahui,<br>Kepala Sekolah<br><br><br><br>______________________</div>
+            <div style="text-align:center;width:220px;">Operator Dapodik<br><br><br><br><br>______________________</div>
+          </div>
+        </div>`;
+      window.print();
+    }
+  </script>
+</body>
+</html>
